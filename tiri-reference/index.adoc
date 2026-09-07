@@ -1,0 +1,73 @@
+= Tiri Reference Manual
+:doctype: book
+:copyright: © 2026 Paul Manias.  All rights reserved.
+:imagesdir: images/
+:title-logo-image: image:tiri.svg[Tiri,200]
+:source-highlighter: rouge
+:source-language: tiri
+:icons: font
+:revdate: September 2026
+:revremark: Draft
+
+include::front-matter.adoc[]
+
+== Contents
+
+=== Language Fundamentals
+
+* link:ch01_introduction.html[1. Introduction]
+* link:ch02_basic_syntax.html[2. Basic Syntax]
+* link:ch03_types_and_values.html[3. Types & Values]
+* link:ch04_variables_and_scoping.html[4. Variables & Scoping]
+* link:ch05_operators.html[5. Operators]
+* link:ch06_control_flow.html[6. Control Flow]
+* link:ch07_functions.html[7. Functions]
+
+=== Data Structures
+
+* link:ch08_strings.html[8. Strings]
+* link:ch09_tables.html[9. Tables]
+* link:ch10_structs.html[10. Structs]
+* link:ch11_arrays.html[11. Arrays]
+* link:ch12_ranges.html[12. Ranges]
+* link:ch13_mathematics.html[13. Mathematics]
+
+=== Intermediate Features
+
+* link:ch14_error_handling.html[14. Error Handling]
+* link:ch15_resource_management.html[15. Resource Management]
+* link:ch16_pattern_matching.html[16. Pattern Matching]
+* link:ch17_type_system.html[17. Type System]
+* link:ch18_regular_expressions.html[18. Regular Expressions]
+* link:ch19_result_management.html[19. Result Management]
+* link:ch20_script_organisation.html[20. Script Organisation]
+
+=== Kōtuku Integration
+
+* link:ch21_the_object_system.html[21. The Object System]
+* link:ch22_modules.html[22. Modules]
+* link:ch23_processing_and_events.html[23. Processing & Events]
+* link:ch24_file_io.html[24. File I/O]
+* link:ch25_input_handling.html[25. Input Handling]
+* link:ch26_threading.html[26. Threading]
+
+=== Advanced Topics
+
+* link:ch27_metatables_and_metamethods.html[27. Metatables & Metamethods]
+* link:ch28_annotations_and_preprocessing.html[28. Annotations & Preprocessing]
+* link:ch29_the_debug_library.html[29. The Debug Library]
+* link:ch30_performance_and_the_jit.html[30. Performance & the JIT]
+* link:ch31_logging_and_diagnostics.html[31. Logging & Diagnostics]
+
+=== Tools
+
+* link:ch32_origo.html[32. Origo]
+
+=== Appendices
+
+* link:appendix_a_migration_from_lua.html[A. Migration from Lua]
+* link:appendix_b_operator_precedence.html[B. Operator Precedence]
+* link:appendix_c_error_code_reference.html[C. Error Code Reference]
+* link:appendix_d_reserved_words.html[D. Reserved Words]
+* link:appendix_e_standard_library_quick_reference.html[E. Standard Library Quick Reference]
+* link:appendix_f_glossary.html[F. Glossary]
