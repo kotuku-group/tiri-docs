@@ -1,0 +1,75 @@
+body.book #header {
+  min-height: 12rem;
+  padding: 3rem 14rem 3rem 1rem;
+  position: relative;
+  text-align: left;
+}
+
+body.book #header > h1:first-child {
+  font-family: "Noto Serif", Georgia, "Times New Roman", serif;
+  font-size: 4rem;
+  margin: 0;
+}
+
+body.book #header .details {
+  border-bottom: 0 !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: 2.5rem;
+}
+
+body.book #content .sect1 + .sect1 {
+  border-top: 0 !important;
+}
+
+body.book #footer {
+  margin-left: -18rem;
+  padding-left: 18rem;
+  padding-right: 0;
+  width: calc(100% + 18rem);
+}
+
+body.book #header .details::before {
+  content: "© 2026 Paul Manias";
+  flex-basis: 100%;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+body.book #header .details br {
+  display: none;
+}
+
+body.book #header #revremark::before {
+  content: "|";
+  padding-right: .5rem;
+}
+
+body.book #header::after {
+  background: url("images/tiri.svg") center / contain no-repeat;
+  content: "";
+  height: 10rem;
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10rem;
+}
+
+@media screen and (max-width: 700px) {
+  body.book #header {
+    min-height: 0;
+    padding-right: 1rem;
+  }
+
+  body.book #footer {
+    margin-left: 0;
+    padding-left: 0;
+    width: 100%;
+  }
+
+  body.book #header::after {
+    display: none;
+  }
+}

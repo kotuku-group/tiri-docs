@@ -1,0 +1,39 @@
+[preface]
+== Foreword
+
+Tiri is currently in alpha.  Its syntax and behaviour may change between releases, and existing code may require migration.  Experimentation and feedback are welcome during development.
+
+[preface]
+== Acknowledgements
+
+The following projects and their contributors have my gratitude for their contributions to the open-source ecosystem.  Tiri and Kōtuku are all the better thanks to their work and generosity.
+
+LuaJIT::
+Mike Pall +
+https://luajit.org/
+
+Lua::
+Roberto Ierusalimschy, Luiz Henrique de Figueiredo, Waldemar Celes +
+https://www.lua.org/
+
+Antigrain Geometry Library::
+Maxim Shemanarev +
+https://en.wikipedia.org/wiki/Anti-Grain_Geometry
+
+SRELL Std::Regex-Like Library::
+Nozomu Katoo +
+https://www.akenotsuki.com/misc/srell/en/
+
+ZLib Compression Library::
+Jean-loup Gailly and Mark Adler +
+https://zlib.net/
+
+libjpeg-turbo::
+https://libjpeg-turbo.org/
+
+The FreeType project::
+David Turner, Robert Wilhelm, and Werner Lemberg +
+https://www.freetype.org/
+
+Katana CSS Parser::
+https://github.com/hackers-painters/katana-parser
