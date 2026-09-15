@@ -17,8 +17,8 @@ counter = 0              -- creates local 'counter'
 name = 'Alice'           -- creates local 'name'
 
 function greet(Name)     -- creates local function 'greet'
-   msg = f'Hello, {Name}'
-   print(msg)
+   greeting = f'Hello, {Name}'
+   print(greeting)
 end
 ----
 
@@ -323,7 +323,7 @@ A function's environment can still be read and replaced through `debug.getEnv()`
 [source,tiri]
 ----
 extern someGlobal
-function probe()
+function probe():any
    return someGlobal
 end
 debug.setEnv(probe, { someGlobal = 'from sandbox' })
@@ -648,10 +648,21 @@ indexterm:[to-be-closed variables] indexterm:[close variables] The `<close>` att
 ----
 resource <close> = acquire_resource()       -- implicit local
 local resource <close> = acquire_resource() -- equivalent explicit form
--- resource.__close(resource, nil) called when scope ends
+-- resource.__close(nil) called when scope ends
 ----
 
-The `__close` metamethod receives two arguments: the value being closed and an error value.  The error is `nil` for normal scope exit, or the error object when an exception is unwinding.
+The `__close` metamethod declares one argument: the active error.  It is `nil` for normal scope exit, and the error object when an exception is unwinding.  The value being closed is the subject of the metamethod rather than an argument, so its fields are reached through the current context (`&name`).  See <<sec-the-close-metamethod>> for the full definition.
+
+[source,tiri]
+----
+mt = {
+   __close = function(Error)
+      print(f'Closing: {&name}')
+   end
+}
+----
+
+An object bound to a `<close>` variable is the exception: a Kōtuku object is not a table, so its native handler receives the object itself as the first argument and the error as the second.
 
 Close handlers execute in LIFO (last-declared first) order and run before `defer` blocks in the same scope (which also execute in LIFO order).  Both trigger on normal scope exit, `return`, `break`, `continue`, and error unwinding.
 
@@ -670,7 +681,7 @@ end
 ----
 <1> if this raises an exception, `file.__close` still runs
 
-The close handler receives the active error as its second argument, enabling error-aware cleanup logic.
+The close handler receives the active error as its declared argument, enabling error-aware cleanup logic.
 
 See <<ch-resource-management>> for further patterns using `<close>` and `defer`.
 
@@ -686,7 +697,8 @@ Because a `<view>` local returns an array that references the same memory the ob
 bitmap = obj<Bitmap> {
    width=2, height=2, bitsPerPixel=32, bkgd='255,255,255,255' }
 pixels <view> = bitmap.data   -- aliases native storage
-pixels[0]   -- 255
+bitmap.acClear()
+pixels[0]       -- 255
 
 bitmap.bkgd = '0,0,0,255'
 bitmap.acClear()
@@ -700,7 +712,7 @@ A view materialises only for array fields whose element type is a primitive nume
 
 [source,tiri]
 ----
-local script = obj<Script> {}
+local script = obj<Tiri> {}
 local strings <view> = script.results   -- error: field cannot be viewed
 ----
 

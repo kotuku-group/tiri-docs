@@ -254,7 +254,7 @@ String::
 An immutable sequence of bytes.  Strings with identical content share the same internal object (interning).  Zero-based indexing.  See <<ch-strings>>.
 
 String interpolation::
-Embedding expressions within string literals using `f"{pass:[...]}"` syntax.  Expressions enclosed in `{pass:[...]}` are evaluated and their string representations inserted.  See <<sec-string-interpolation>>.
+Embedding expressions within string literals using the `f` prefix, as `f'{pass:[...]}'`.  Expressions enclosed in `{` and `}` are evaluated and converted with `tostring()`.  See <<sec-string-interpolation>>.
 
 Structure::
 A first-class reference type that maps a fixed set of named, typed fields onto memory with a C/C++ compatible layout; `type()` returns `"struct"`.  Definitions are registered with the `struct` declaration statement or by Kōtuku modules.  See <<ch-structs>>.

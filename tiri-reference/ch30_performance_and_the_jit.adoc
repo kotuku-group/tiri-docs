@@ -552,8 +552,8 @@ Individual flags are enabled with `+flag` or the bare flag name, and disabled wi
 
 [source,tiri]
 ----
-jit.opt.start(3)               -- reset to default (level 3)
-jit.opt.start(2, '-loop')      -- level 2 without loop optimisation
+jit.opt.start('3')             -- reset to default (level 3)
+jit.opt.start('2', '-loop')    -- level 2 without loop optimisation
 jit.opt.start('+fold', '+cse') -- enable specific flags only
 ----
 
@@ -630,7 +630,7 @@ Parameters are set with `'name=value'` strings.  All values are non-negative int
 ----
 jit.opt.start('hotloop=100')      -- require more iterations before tracing
 jit.opt.start('maxtrace=2000')    -- increase trace cache size
-jit.opt.start(3, 'hotloop=100')   -- combine level and parameter
+jit.opt.start('3', 'hotloop=100') -- combine level and parameter
 ----
 
 [[sec-common-performance-pitfalls]]
@@ -696,18 +696,22 @@ result = tostring(buf) <2>
 [[sec-nyi-operations]]
 ==== NYI Operations
 
-Certain operations are not yet implemented in the JIT compiler.  When the trace recorder encounters a NYI operation, it aborts recording and the enclosing path falls back to the interpreter.  The most common NYI trigger in Tiri code is closure creation inside a traced loop: the `FNEW` bytecode aborts recording with error code 7.
+Certain operations are not yet implemented in the JIT compiler.  When the trace recorder encounters a NYI operation, it aborts recording and the enclosing path falls back to the interpreter.
+
+Closure creation records.  The `FNEW` bytecode compiles for a closure with no upvalues, for a closure that inherits the upvalues of its parent, and for a closure that captures locals of the enclosing frame; the `UCLO` close that ends a captured local's scope compiles with it.  A callback constructed inline inside a hot loop therefore traces, including the comparator passed to `table.sort()`.
+
+Recording the allocation does not remove it.  Allocation sinking (the `sink` flag in <<sec-jit-options>>) elides a closure allocation only when the closure captures no upvalues and the trace proves it does not escape.  Passing the closure to a native call, storing it in a table or an upvalue, and returning it are all escapes.  A loop-invariant closure is therefore still worth hoisting out of a hot loop, for the allocation it saves rather than for an abort it avoids.
 
 [source,tiri]
 ----
--- Aborts: a new closure is constructed on every iteration
+-- Compiles, but allocates a comparator on every iteration
 
 for i in {0 to 5000} do
    a = { 5, 3, 1, 4, 2 }
    table.sort(a, function(X, Y) return X < Y end)
 end
 
--- Compiles: the comparator is constructed once, outside the trace
+-- Compiles, and constructs the comparator once
 
 function cmp(X, Y) return X < Y end
 
@@ -717,9 +721,7 @@ for i in {0 to 5000} do
 end
 ----
 
-Hoisting a closure out of a hot loop removes the abort.  This applies to any callback constructed inline, not only comparison functions.  `table.sort()` itself records normally, both with a hoisted comparator and with the default comparator.
-
-A membership test against a plain table is a second, unrelated abort trigger.  The recorder compiles `Value in Target` only when `Target` supplies a `pass:[__]contains` metamethod; the raw key-presence fallback used for a table without that handler has no recorded form and aborts.  Give the table a `pass:[__]contains` handler, or replace the test with a direct field read, when the expression sits inside a hot loop.
+A membership test against a plain table is an abort trigger.  The recorder compiles `Value in Target` only when `Target` supplies a `pass:[__]contains` metamethod; the raw key-presence fallback used for a table without that handler has no recorded form.  Recording aborts with the missing-metamethod code (18), which is not one of the NYI codes listed in <<sec-detecting-trace-aborts>>.  Give the table a `pass:[__]contains` handler, or replace the test with a direct field read, when the expression sits inside a hot loop.
 
 [source,tiri]
 ----
@@ -757,7 +759,7 @@ for i in {0 to 5000} do
 end
 ----
 
-`type()` applied to an object or a struct is a third trigger.  Those values carry a per-instance metatable whose display-name lookup has no recorded form, so the recorder aborts.  Every other argument type records normally, and `rawtype()` records for all of them: it consults no metatable, and its result -- including a parameterised name such as `array<int>` or `obj<Time>` -- folds to a constant string on the trace.  Prefer `rawtype()` in a hot path, and reserve `type()` for the message text that a hot path produces on the way out.
+`type()` applied to an object or a struct is a further trigger.  Those values carry a per-instance metatable whose display-name lookup has no recorded form, so the recorder aborts.  Every other argument type records normally, and `rawtype()` records for all of them: it consults no metatable, and its result -- including a parameterised name such as `array<int>` or `obj<Time>` -- folds to a constant string on the trace.  Prefer `rawtype()` in a hot path, and reserve `type()` for the message text that a hot path produces on the way out.
 
 [source,tiri]
 ----
@@ -787,7 +789,7 @@ Use `jit.off()` on functions that unavoidably contain NYI operations to prevent 
 
 Attach a callback to the `'trace'` event (see <<sec-the-jit-library>>) to report which loops fail to compile and why.  The callback receives the reason `'abort'` followed by `(TraceNo, Func, PC, ErrCode, ErrInfo)`.
 
-`ErrCode` is an integer trace error code, not a message string.  `ErrInfo` supplies the offending bytecode number for code 7, the fast function identifier for code 15, and `nil` otherwise.  Tiri provides no built-in table mapping codes to descriptions, so a reporter must declare the codes it recognises.
+`ErrCode` is an integer trace error code, not a message string.  `ErrInfo` is an optional integer detail that only some abort sites supply: most code 7 aborts report the offending bytecode number, and code 33 reports the IR opcode or type that could not be assembled.  Every other abort, code 15 included, reports `nil`.  Tiri provides no built-in table mapping codes to descriptions, so a reporter must declare the codes it recognises.
 
 [source,tiri]
 ----
@@ -803,7 +805,7 @@ jit.attach(on_trace, 'trace')     -- start reporting
 jit.attach(on_trace)              -- detach
 ----
 
-The current NYI error codes are 7, 15, 16, 20, 21, 23, 24, 33, 34 and 35.  Codes outside that set report a different abort cause, such as a length or nesting limit.  The complete list of codes is defined by the `TraceError` enumeration in `src/tiri/jit/src/lj_traceerr.h`.
+The current NYI error codes are 7, 15, 16, 20, 21, 23, 24, 33, 34 and 35.  Codes outside that set report a different abort cause, such as a length or nesting limit.  The complete list of codes is defined by the `TraceError` enumeration in `src/tiri/jit/src/lj_trace.h`, which is generated in declaration order from `src/tiri/jit/src/lj_traceerr.h`.
 
 Two properties of the event stream affect interpretation:
 

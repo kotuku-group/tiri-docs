@@ -260,23 +260,17 @@ tonumber('3') & 1    -- 1
 |Right shift|`a >> b` |Logical (unsigned) right shift of `a` by `b` bits
 |===
 
-The AND operator shares its character with self referencing (<<sec-self-referencing>>).  A `&` that is followed immediately by an identifier reads as a self reference; separate the operator from its right operand with whitespace to obtain the bitwise reading:
+Two of the bitwise characters are shared with other constructs, and adjacency separates the readings in both cases.
+
+The AND operator shares its character with self referencing (<<sec-self-referencing>>).  An `&` followed immediately by an identifier begins a self reference, regardless of what precedes it or whether it starts a new line.  Insert whitespace after `&` to obtain the bitwise reading with an identifier.  Numbers and parenthesised operands cannot name contextual fields, so they require no separating whitespace:
 
 [source,tiri]
 ----
 mask & flags   -- bitwise AND
+mask& flags    -- bitwise AND
+mask&7         -- bitwise AND
 &flags         -- a field of the current context
-----
-
-Bitwise operators have no metamethods.
-
-[source,tiri]
-----
-flags  = 0xFF & 0x0F    -- 0x0F (15)
-mask   = 1 << 4         -- 16
-bits   = ~0             -- -1 (all bits set)
-value  = 0xA0 | 0x0B    -- 0xAB (171)
-toggle = flags ^ mask   -- XOR toggle
+mask&flags     -- does not form bitwise AND; '&flags' begins contextual syntax
 ----
 
 [[sec-flag-testing-operator]]
@@ -484,6 +478,8 @@ d = '' ?? 0 ?? 'final'  -- 'final' (both '' and 0 are falsey)
 e = {} ?? 'empty'       -- 'empty' (an empty table is falsey under extended rules)
 ----
 
+Whitespace before `??` selects the binary operator.  Its right-hand side may begin on the following line.
+
 ==== If-Empty Guard Operator (?!)
 
 `variable ?! return`
@@ -496,18 +492,21 @@ value ?! raise 'Value is empty'
 user_input ?! return ERR_InvalidInput
 ----
 
-Line breaks immediately following `?!` or `??` are forbidden.  The RHS must appear on the same line as the operator.
+The `?!` operator has no such ambiguity: it takes a control-flow statement rather than an expression, and its right-hand side may be written on the following line.
 
 ==== If-Empty Postfix Operator (??)
 
 `if x?? then`
 
-When `??` appears with no right-hand operand, it acts as a postfix presence-check operator.  Returns `false` if the value is falsey under extended semantics; `true` otherwise.
+When `??` immediately follows its left operand without whitespace, it acts as a postfix presence-check operator.  It returns `false` if the value is falsey under extended semantics; `true` otherwise.  This adjacency terminates the expression even when the next statement begins with an expression token.
 
 The postfix form binds tightly and evaluates before logical operators.
 
 [source,tiri]
 ----
+present = value??
+fallback = value ?? default_value
+
 if comment?? then
    print('Comment exists')
 end
@@ -695,7 +694,7 @@ result = get_bounds() |> math.max()  -- math.max(10, 20) = 20
 
 ==== Result Limiting
 
-The syntax `|N>` limits the number of values forwarded from the LHS:
+The syntax `|N>` limits the number of values forwarded from the LHS.  `N` is a one- or two-digit decimal integer from 1 to 99:
 
 [source,tiri]
 ----

@@ -276,7 +276,7 @@ Sets the environment table of `Function` to `Table`.  Returns `Function`.  Raise
 
 [source,tiri]
 ----
-function sandboxed() return print end
+function sandboxed():any return print end
 sandbox = { print = print }
 debug.setEnv(sandboxed, sandbox)
 ----

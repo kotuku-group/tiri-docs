@@ -104,7 +104,9 @@ NOTE: `print()` writes to standard error, not standard output.  Tiri directs dia
 [[sec-file-recognition]]
 === File Recognition
 
-Tiri source files use the `.tiri` file extension.  To completely avoid ambiguity, script files can also start with an optional shebang line and the official identification comment:
+Tiri source files use the `.tiri` file extension.  Compiled bytecode files use `.tbc`.  The runtime identifies a script by its extension alone; a file carrying any other extension, or none, is rejected.
+
+To remove ambiguity for tools that do not have the file name to work from, script files can also start with an optional shebang line and the official identification comment:
 
 [source,tiri]
 ----
@@ -112,4 +114,4 @@ Tiri source files use the `.tiri` file extension.  To completely avoid ambiguity
 -- $TIRI
 ----
 
-The `$TIRI` marker allows tools, editors and the runtime to identify Tiri source without using the file name.
+The `$TIRI` marker allows tools and editors to identify Tiri source by content.  It has no effect on the runtime, which matches on the file extension.

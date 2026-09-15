@@ -9,17 +9,20 @@ indexterm:[reserved words] indexterm:[keywords] This appendix provides a quick-r
 
 [cols="6*"]
 |===
-|`and`      |`as`      |`break`   |`check`    |`checkall` |`choose`
-|`continue` |`defer`   |`do`      |`else`     |`elseif`   |`end`
-|`enum`     |`except`  |`extern`  |`false`    |`for`      |`from`
-|`function` |`global`  |`has`     |`if`       |`import`   |`in`
-|`is`       |`local`   |`namespace`|`nil`     |`not`      |`or`
-|`raise`    |`repeat`  |`return`  |`success`  |`then`     |`thunk`
-|`true`     |`try`     |`until`   |`using`    |`when`     |`while`
-|`with`     |          |          |           |           |
+|`and`      |`as`       |`await`     |`break`   |`check`   |`checkall`
+|`choose`   |`class`    |`continue`  |`defer`   |`do`      |`else`
+|`elseif`   |`end`      |`enum`      |`except`  |`export`  |`extends`
+|`extern`   |`false`    |`finally`   |`for`     |`from`    |`function`
+|`global`   |`has`      |`if`        |`import`  |`in`      |`interface`
+|`is`       |`local`    |`namespace` |`nil`     |`not`     |`or`
+|`raise`    |`record`   |`repeat`    |`return`  |`success` |`then`
+|`thunk`    |`true`     |`try`       |`until`   |`using`   |`when`
+|`where`    |`while`    |`with`      |`yield`   |          |
 |===
 
-A reserved word remains available as a table member name, so `t.using` and `t.with` are valid field accesses.
+A reserved word remains available as a table member name, so `t.using` and `t.with` are valid field accesses.  It is also accepted as a bare key in a table constructor when followed by `=`, as in `{ end = 1 }`.  The `=` makes the word's role as a field name unambiguous.
+
+`await`, `class`, `export`, `extends`, `finally`, `interface`, `record`, `where` and `yield` are reserved but define no syntax in this version of the language.  See <<sec-reserved-without-grammar>>.
 
 === Reference by Category
 
@@ -59,7 +62,7 @@ A reserved word remains available as a table member name, so `t.using` and `t.wi
 |`then`     |Separates the condition from the body in `if` and `elseif` clauses.
 |`else`     |Introduces the alternative branch of an `if` statement.
 |`elseif`   |Introduces an additional condition in an `if` chain.
-|`end`      |Terminates a block (`if`, `for`, `while`, `do`, `function`, `try`, `choose`, `with`).
+|`end`      |Terminates a block (`if`, `for`, `while`, `do`, `function`, `try`, `choose`, `with`, `using`, `checkall`, `defer`).
 |`do`       |Introduces an anonymous block or the body of a `for`/`while` loop.
 |`for`      |Begins a loop.  See <<ch-control-flow>>.
 |`in`       |Separates the iterator variable from the iterator expression in a `for` loop.  Also the membership operator (see <<sec-membership-operator>>).
@@ -78,9 +81,9 @@ A reserved word remains available as a table member name, so `t.using` and `t.wi
 |===
 |Keyword |Description
 
-|`and` |Logical AND.  Short-circuits; returns the first false operand or the last operand.  See <<sec-logical-operators>>.
-|`or`  |Logical OR.  Short-circuits; returns the first true operand or the last operand.  See <<sec-logical-operators>>.
-|`not` |Logical negation.  Returns `true` if the operand is false; `false` otherwise.  See <<sec-logical-operators>>.
+|`and` |Logical AND.  Short-circuits; returns the first falsey operand or the last operand.  Applies standard falsiness.  See <<sec-logical-operators>>.
+|`or`  |Logical OR.  Short-circuits; returns the first truthy operand or the last operand.  Applies standard falsiness.  See <<sec-logical-operators>>.
+|`not` |Logical negation.  Returns `true` if the operand is `nil` or `false`; `false` otherwise.  See <<sec-logical-operators>>.
 |`is`  |Equality comparison.  Replaces `==` from standard Lua.  Combines with `not` as `is not` for inequality.  See <<sec-comparison-operators>>.
 |`has` |Bitwise flag testing.  Returns `true` if any flags in the right operand are set in the left operand.  See <<sec-flag-testing-operator>>.
 |===
@@ -116,7 +119,7 @@ A reserved word remains available as a table member name, so `t.using` and `t.wi
 
 === Contextual Keywords
 
-indexterm:[contextual keywords] A contextual keyword introduces a declaration only in a specific syntactic position.  It is not reserved, so it remains available as an ordinary identifier everywhere else.
+indexterm:[contextual keywords] A contextual keyword carries meaning only in a specific syntactic position.  It is not reserved, so it remains available as an ordinary identifier everywhere else.
 
 [cols="2,5"]
 |===
@@ -125,4 +128,7 @@ indexterm:[contextual keywords] A contextual keyword introduces a declaration on
 |`module` |Binds a Kōtuku module to a namespace when followed by an identifier, as `module Name as Namespace`.  See <<sec-module-declarations>>.
 |`struct` |Declares a struct layout when followed by an identifier.  See <<sec-struct-declarations>>.
 |`entity` |Designates a table as an entity when followed by a table constructor, as `entity { pass:[...] }`.  The form takes precedence over the same-line table-argument call shorthand, so a callable named `entity` requires parenthesised call syntax.  See <<sec-table-entities>>.
+|`to`     |Separates the start and stop operands of an exclusive range literal, as `{0 to 10}`.  See <<sec-range-constructors>>.
+|`into`   |Separates the start and stop operands of an inclusive range literal, as `{0 into 10}`.  See <<sec-range-constructors>>.
+|`by`     |Introduces the step operand of a range literal, as `{0 to 10 by 2}`.  See <<sec-range-constructors>>.
 |===

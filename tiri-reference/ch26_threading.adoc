@@ -35,7 +35,7 @@ NOTE: Thread callbacks always execute during the event processing loop, which re
 
 [.api]`async.script(Script, [Callback])`
 
-indexterm:[threading, creation] Executes a Script object in a separate thread, or enqueues it for later execution if busy.  `Script` must be a Kōtuku Script object.  The script's code runs in its own isolated state — it cannot see local variables from the calling scope.
+indexterm:[threading, creation] Executes a script in a separate thread, or enqueues it for later execution if busy.  `Script` must be a `Tiri` object; any other class raises `ERR_WrongClass`.  The script's code runs in its own isolated state — it cannot see local variables from the calling scope.
 
 If `Callback` is provided, it executes on the main thread after the threaded script completes.  The callback receives a reference to the `Script` object as its first parameter.
 
@@ -43,7 +43,7 @@ To check if the script failed during execution, check the `error` property on th
 
 [source,tiri]
 ----
-script = obj<Script> {
+script = obj<Tiri> {
    statement=[[ msg('Thread is now in session.') ]]
 }
 
@@ -64,7 +64,7 @@ Because the threaded script runs in a separate state, it cannot access the calle
 ----
 signal_obj = obj<Time> {}
 
-script = obj<Script> {
+script = obj<Tiri> {
    statement=[[
       sig = obj.find(arg('SignalID'))
       -- Perform work...
@@ -82,7 +82,7 @@ A Script object can be reused for multiple sequential thread invocations, but no
 
 [source,tiri]
 ----
-script = obj<Script> {
+script = obj<Tiri> {
    statement=[[ msg('Thread is now in session.') ]]
 }
 
@@ -102,7 +102,7 @@ The garbage collector cannot reclaim a Script object while its thread is running
 [source,tiri]
 ----
 do
-   script = obj<Script> {
+   script = obj<Tiri> {
       statement=[[ msg('Working...') ]]
    }
    async.script(script, callback)
@@ -119,7 +119,7 @@ processing.collect() <1>
 [.api]`async.action(Object, Name, [Callback], [Key], [Argspass:[...]])` +
 [.api]`async.method(Object, Name, [Callback], [Key], [Argspass:[...]])`
 
-indexterm:[async methods] indexterm:[async actions] Submits an action or method for asynchronous execution against `Object`.  The `Name` is the name of the action or method to invoke, corresponding to its `AC` or `MT` ID.  The runtime allocates a worker thread to execute the action; the caller does not manage threads directly.  The optional `Callback` executes on the main thread when the action completes.  `Callback` accepts a function value or a string that names a global function.
+indexterm:[async methods] indexterm:[async actions] Submits an action or method for asynchronous execution against `Object`.  The `Name` is the name of the action or method to invoke, corresponding to its `AC` or `MT` ID.  The runtime allocates a worker thread to execute the action; the caller does not manage threads directly.  The optional `Callback` executes on the main thread when the action completes.  `Callback` must be a function value.
 
 Multiple calls targeting the same object are queued automatically and executed in FIFO order — only one worker thread runs per object at any time.  Calls targeting different objects execute in parallel.
 
@@ -142,11 +142,11 @@ The callback receives four arguments:
 |The `ERR` code returned by the action.
 
 |`Key`
-|integer
+|number
 |The `Key` value passed to `async.action()`.
 |===
 
-`Key` is an optional integer forwarded to the callback.  Use it to identify which thread completed when multiple threads share a callback.  Alternatively, declaring a closure with references to external variables is a viable data referencing strategy.
+`Key` is an optional number forwarded to the callback.  Use it to identify which thread completed when multiple threads share a callback.  Alternatively, declaring a closure with references to external variables is a viable data referencing strategy.
 
 `Args` is a series of optional action-specific parameters, marshalled according to the action's parameter specification.
 
@@ -160,7 +160,7 @@ In this example, `images` is an `array<obj>` of pre-configured `Image` objects t
 
 [source,tiri]
 ----
-function imgProcessed(ActionID:num, Image:obj<Image>, Error:num, Key:num)
+function imgProcessed(ActionID:num, Image:obj, Error:num, Key:num)
    if Error != ERR_Okay then
       print('Failed to process image: ' .. mSys.GetErrorMsg(Error))
    end
@@ -207,7 +207,7 @@ Only one `async.wait()` call may be active at any time.  A second concurrent cal
 [%unbreakable]
 [source,tiri]
 ----
-script = obj<Script> { statement=[[ mSys.WaitTime(1) ]] }
+script = obj<Tiri> { statement=[[ mSys.WaitTime(1) ]] }
 async.script(script)
 check async.wait(script, 5) -- Block until complete (5 second timeout)
 ----
@@ -233,7 +233,7 @@ An exception is raised if `Object` is not a valid Kōtuku object.
 
 [source,tiri]
 ----
-script = obj<Script> { statement=[[ mSys.WaitTime(0.5) ]] }
+script = obj<Tiri> { statement=[[ mSys.WaitTime(0.5) ]] }
 async.script(script)
 print(async.pending(script)) -- 1 (in-flight)
 check async.wait(script, 5)
@@ -244,7 +244,7 @@ print(async.pending(script)) -- 0 (complete)
 
 [.api]`error = async.cancel(Objects)`
 
-Cancels all pending asynchronous actions for the listed objects.  The in-flight thread (if any) is interrupted and the remaining action queue is drained without execution.  Callbacks for cancelled actions receive `ERR_DoesNotExist`.
+Cancels all pending asynchronous actions for the listed objects.  The in-flight thread (if any) is interrupted and the remaining action queue is drained without execution.  The callback for the interrupted action receives `ERR_Cancelled`; callbacks for the drained queue entries receive `ERR_DoesNotExist`.
 
 `Objects` can be a single Kōtuku object or `array<obj>` list.  Returns `ERR_Okay` on success.
 
@@ -252,7 +252,7 @@ Cancelling an object with no pending actions succeeds without error.
 
 [source,tiri]
 ----
-script = obj<Script> { statement=[[ mSys.WaitTime(10) ]] }
+script = obj<Tiri> { statement=[[ mSys.WaitTime(10) ]] }
 
 for i in {0 to 5} do
    async.script(script)
@@ -311,12 +311,12 @@ file_a = obj<File> { ... }
 file_b = obj<File> { ... }
 work_list = array<obj> { file_a, file_b }
 
-async.script(obj<Script> { statement=[[ msg('Task A') ]] },
+async.script(obj<Tiri> { statement=[[ msg('Task A') ]] },
    function(Object)
       file_a.acSignal()
    end)
 
-async.script(obj<Script> { statement=[[ msg('Task B') ]] },
+async.script(obj<Tiri> { statement=[[ msg('Task B') ]] },
    function(Object)
       file_b.acSignal()
    end)
@@ -336,7 +336,7 @@ NOTE: When using a custom `signals` list, `proc.signal()` has no effect because 
 ----
    scripts = array<obj> { } <1>
    for i in {1 into 10} do
-      scripts.push(obj<Script> { statement = [[
+      scripts.push(obj<Tiri> { statement = [[
          print('Pipe worker ]] .. i .. [[ running.'); return ]] .. i <2>
       })
    end
@@ -371,7 +371,7 @@ The pool is created lazily on first access and is shared automatically with all 
 async.pool.status = 'ready'
 async.pool.count  = 0
 
-script = obj<Script> { statement=[[
+script = obj<Tiri> { statement=[[
    val = async.pool.status
    async.pool.result = 'processed: ' .. val
    async.pool.count  = async.pool.count + 1
@@ -446,7 +446,7 @@ Keys are strings and are binary-safe (embedded NUL bytes are preserved).
 * The barrier model prevents concurrent access to the same object from multiple threads.
 * Multiple async actions on the same object are queued and dispatched in submission order, guaranteeing deterministic sequential execution per object.
 * Garbage collection cannot reclaim objects that are actively participating in a thread.
-* All threads are automatically joined when the owning script is destroyed.
+* Outstanding async threads are signalled to stop during process shutdown and are given a two second grace period to terminate.  Queued actions that remain at that point are discarded without callbacks.
 
 [discrete]
 ==== Restrictions
@@ -454,6 +454,7 @@ Keys are strings and are binary-safe (embedded NUL bytes are preserved).
 * A threaded script (`async.script()`) cannot access local variables from the calling scope.  Use `setKey()` / `arg()`, `obj.find()`, or `async.pool` (<<sec-shared-pool>>) to exchange data.
 * An object targeted by `async.action()` or `async.method()` must not be freed while actions are queued.  If the object is freed, the remaining callbacks receive `ERR_DoesNotExist` and a `nil` object reference.  The reference must remain valid until all callbacks have fired.
 * `processing.sleep()` must be called on the main thread.  Calling it from within a threaded script is not supported.
+* `async.wait()` must also be called on the main thread.  A call from a worker thread returns `ERR_OutsideMainThread`.
 
 [discrete]
 ==== Notes

@@ -169,7 +169,7 @@ processing.signal()
 [discrete]
 ==== Custom Signal Lists
 
-For thread synchronisation or multi-object coordination, create a processing object with a list of objects to monitor.  The call to `sleep()` returns only when _all_ listed objects have been signalled or the timeout elapses.
+For thread synchronisation or multi-object coordination, create a processing object with a list of objects to monitor.  The call to `sleep()` returns when the timeout elapses, or when the monitored objects satisfy the object's `mode`: every listed object signalled under the default `'all'`, or any one of them under `'any'`.
 
 ==== processing.new()
 
@@ -187,10 +187,14 @@ Creates a processing object.  `Options` is an optional table with the following 
 
 |`signals`
 |array<obj>
-|An array of Kōtuku objects to monitor for signals.  If omitted or empty, the script object itself is monitored.
+|An `array<obj>` of Kōtuku objects to monitor for signals.  If omitted or empty, the script object itself is monitored.
+
+|`mode`
+|string
+|`'all'` requires every listed object to be signalled before `sleep()` returns.  `'any'` returns as soon as one listed object is signalled.  Defaults to `'all'`.
 |===
 
-Raises an exception if an entry in the `signals` table is not a valid object reference, or if an unrecognised option is provided.
+Raises an exception if `signals` is not an `array<obj>`, if an entry in the array is `nil` or is not an available object, if `mode` is not the string `'all'` or `'any'`, or if an unrecognised option is provided.
 
 [source,tiri]
 ----
@@ -243,7 +247,7 @@ files = array<obj> { <1>
    obj<File> { ... }
 }
 
-script = obj<Script> {
+script = obj<Tiri> {
    statement=[[ msg('Thread is now in session.') ]] <2>
 }
 
@@ -276,17 +280,17 @@ Events are dispatched during the processing loop (<<sec-the-processing-loop>>). 
 [discrete]
 ==== subscribeEvent()
 
-[.api]`handle, error = subscribeEvent(EventName, Callback)`
+[.api]`err, handle = subscribeEvent(EventName, Callback)`
 
-Subscribes to the event identified by `EventName`.  Returns a handle for later unsubscription, and an `ERR` code.  If the subscription fails, `handle` is `nil`.
+Subscribes to the event identified by `EventName`.  Returns an `ERR` code followed by a handle for later unsubscription.  If the subscription fails, `handle` is `nil`.
 
-`EventName` is a string in the format `group.subgroup.name`.  A single-character wildcard `pass:[*]` is permitted in the subgroup and name positions to match all events within that level.
+`EventName` is a string in the format `group.subgroup.name`.  All three parts are required.  The group is matched case-insensitively against the table below; the subgroup and name are case-sensitive.  A single-character wildcard `pass:[*]` is permitted in the subgroup and name positions to match all events within that level.
 
-`Callback` must be a function value and receives one argument: the numeric event identifier.  It observes the context that was current at the point of subscription (<<sec-callback-context>>).
+`Callback` must be a function value and receives two arguments: the numeric event identifier, and a table of event parameters.  The parameter table is empty for every event that the runtime broadcasts.  The callback observes the context that was current at the point of subscription (<<sec-callback-context>>).
 
 [source,tiri]
 ----
-handle, err = subscribeEvent('filesystem.volume.created', function(EventID)
+err, handle = subscribeEvent('filesystem.volume.created', function(EventID, Args)
    print(f'Volume event received: {EventID}')
 end)
 ----
@@ -335,7 +339,7 @@ end)
 |Application-level events.
 |===
 
-Raises an exception if the group name is not recognised.
+Raises an exception if the group name is not recognised, or if the event string does not supply all three parts.
 
 [discrete]
 ===== Wildcard Subscriptions
@@ -345,7 +349,7 @@ Use `pass:[*]` in the subgroup or name position to receive a broader set of even
 [source,tiri]
 ----
 -- Listen for all filesystem events
-handle, err = subscribeEvent('filesystem.*.*', function(EventID)
+err, handle = subscribeEvent('filesystem.*.*', function(EventID)
    print('Filesystem event received.')
 end)
 ----
@@ -396,7 +400,7 @@ The `Callback` function receives three arguments:
 
 The callback captures the current context at the point of subscription and observes it on every tick (<<sec-context-and-callbacks>>).  The captured table is released when the subscription is removed.
 
-To cancel the subscription from within the callback, call `check ERR_Terminate`.
+To cancel the subscription from within the callback, use `raise ERR_Terminate`.
 
 [source,tiri]
 ----
@@ -503,7 +507,7 @@ Combine `processing.new()` with a timeout to implement deadline-based waiting:
 
 [source,tiri]
 ----
-proc = processing.new({ timeout = 30, signals = { download_obj } })
+proc = processing.new({ timeout = 30, signals = array<obj> { download_obj } })
 err = proc.sleep()
 
 if err is ERR_Timeout then
@@ -514,6 +518,61 @@ end
 [[sec-garbage-collector-control]]
 === Garbage Collector Control
 indexterm:[garbage collector] The `processing` namespace provides functions to control and query the Tiri garbage collector.  The collector runs automatically by default, reclaiming memory used by unreachable values.
+
+[[sec-collector-design]]
+==== Collector Design
+
+indexterm:[garbage collector, design] The collector is an incremental mark-and-sweep tracer.  Liveness is decided by reachability: the collector traverses a root set that comprises the script's global table, its context stack, the active call stack, open upvalues and the internal registry, and reclaims every value that the traversal does not reach.  Reference counts are not maintained, so a group of values that reference one another is reclaimed as soon as the group as a whole becomes unreachable.
+
+A collection cycle runs in three phases:
+
+[cols="1,4a",options="header"]
+|===
+|Phase |Behaviour
+
+|Mark
+|Traverses reachable values from the root set.  Runs in increments that are interleaved with script execution.
+
+|Atomic
+|Completes the traversal, resolves weak tables and queues finalisers.  Runs to completion without interleaving.
+
+|Sweep
+|Reclaims unmarked values and invokes queued finalisers.  Runs in increments that are interleaved with script execution.
+|===
+
+Collection does not relocate values, and the cost of a cycle is proportional to the volume of live data, not to the volume of garbage.
+
+Each script owns its heap and its collector.  A script executed with `thread.script()` (<<ch-threading>>) collects independently of its parent, and `processing.gcStats()` reports memory for the calling script alone.
+
+The collector governs Tiri values — strings, tables, arrays, structs, closures and coroutines — and the interfaces that own Kōtuku resources.  Reclaiming an interface created with `obj<Class> { }` or `obj.new()` terminates the underlying object.  Interfaces obtained from `obj.find()`, created as children of another object, or demoted by `detach()`, hold weak references and are not terminated by collection (<<sec-object-lifecycle>>).  Reclaiming a table or full userdata that carries a `pass:[__]gc` metamethod invokes that finaliser once, immediately before the value is reclaimed (<<sec-garbage-collection>>).
+
+[discrete]
+===== Scheduling
+
+Allocation drives the collector.  Each allocation compares total memory in use against a threshold and performs one incremental step when the threshold is reached.  Steps occur in interpreted and JIT-compiled code alike.  Two parameters, both reported by `processing.gcStats()`, define the schedule:
+
+[cols="1,4a",options="header"]
+|===
+|Parameter |Effect
+
+|`pause`
+|The percentage of the previous cycle's live-memory estimate at which the next cycle begins.  The default of `200` starts a cycle when the heap reaches twice the estimated live size.
+
+|`stepMul`
+|The work performed by each incremental step, as a percentage of the base step size.  The default of `200` advances collection at twice the rate of allocation.
+|===
+
+Neither parameter is configurable from Tiri.
+
+[discrete]
+===== Behaviour in Practice
+
+A script that builds an interface, performs its work in callbacks and returns to `processing.sleep()` requires no collector management.  The full cycle performed on entry to the processing loop (<<sec-automatic-collection>>) reclaims the garbage produced by the preceding burst of activity, so the resident heap stays close to the working set and cycles fall at points where the script is idle.
+
+Two properties of the design have consequences for program structure:
+
+* Reclamation is not immediate.  The interval between release of the last reference to a value and reclamation of that value is unbounded.  An object that holds a scarce resource — a file handle, a socket, a lock — retains that resource for the whole interval, so release it with `free()` or bind it to a `<close>` variable (<<sec-object-lifecycle>>).  Collection is not a release mechanism for scarce resources.
+* A value that a live stack slot references is reachable.  A collection performed inside a function does not reclaim values that the function's own locals reference, irrespective of whether those locals are read again.
 
 [discrete]
 ==== processing.collect()
@@ -532,7 +591,7 @@ Triggers a garbage collection cycle.  Returns an integer whose meaning depends o
 |Performs a complete collection cycle.  This is the default if `Mode` is omitted.
 
 |`'step'`
-|Performs an incremental collection step.  Returns `1` if collection is not finished, `0` if finished.
+|Performs an incremental collection step.  Returns `1` if the step completes a collection cycle, `0` if the cycle remains in progress.
 
 |`'defer'`
 |Records a request for a full collection cycle to run when the script next returns control to the runtime.  No collection takes place during the call.  Returns `0`.
@@ -546,7 +605,7 @@ Triggers a garbage collection cycle.  Returns an integer whose meaning depends o
 
 |`stepSize`
 |integer
-|Controls the size of an incremental step (only used with `'step'` mode).
+|Work budget for the step, in kibibytes (only used with `'step'` mode).  Larger values complete cycles sooner and lengthen the pause caused by the call.  Values of 16 to 64 suit calls made from a frame or event loop; values of 100 and above suit idle-time collection.
 |===
 
 `Options` has no effect in `'full'` and `'defer'` modes.
@@ -570,7 +629,7 @@ processing.collect('defer')
 
 indexterm:[garbage collector, deferred collection] indexterm:[callback boundary] A request made with `processing.collect('defer')` is fulfilled at the next _callback boundary_, which is the point at which a Tiri callback returns control to the runtime.  The following are callback boundaries:
 
-* Action and field subscription notifications (see <<ch-the-object-system>>).
+* Action and method subscription notifications (see <<ch-the-object-system>>).
 * Event subscriptions (see <<sec-the-event-subsystem>>).
 * Input and keyboard handlers (see <<ch-input-handling>>).
 * Data feeds received by the script.
@@ -605,12 +664,25 @@ Returning from a callback does not otherwise trigger a collection cycle.  A scri
 
 NOTE: Incremental collection continues to run under the collector's own scheduling in all cases.  The points listed above define when a *full* cycle is guaranteed.
 
+[[sec-manual-collection]]
+==== Manual Collection
+
+indexterm:[garbage collector, manual collection] Call `processing.collect()` when the timing of a cycle matters to the program.  The following cases warrant it:
+
+* A callback drops the last references to a body of data and the script does not return to the processing loop afterwards.  Use the `'defer'` option so that the cycle runs once the callback's frame is unwound (<<sec-deferred-collection>>).
+* A computation runs to completion without entering the processing loop.  A full cycle at each stage boundary returns the resident heap to the live set, where the automatic schedule allows it to reach twice that size.
+* A latency-sensitive phase is about to begin, such as an animation sequence, a benchmark or a real-time render.  A full cycle immediately beforehand starts the phase with no accumulated garbage, so the phase allocates an amount equal to the live set before the collector resumes stepping.
+* Memory is being measured.  `processing.gcStats()` reports the heap in use, which includes garbage that has not been reclaimed.  A full cycle before the measurement reduces the figure to the live set.
+* Collection work is to be spread across chosen points rather than across allocations.  Call `'step'` mode from a timer or frame callback with a small `stepSize`.
+
+Do not perform full collection inside a hot loop or on every frame.  The cost of a cycle is proportional to live data, so repeated full cycles over a large live set consume more time than the automatic schedule.
+
 [discrete]
 ==== processing.stopCollector()
 
 [.api]`processing.stopCollector()`
 
-Stops the automatic garbage collector.  No automatic collection occurs until `processing.startCollector()` is called.  Manual collection via `processing.collect()` remains available.
+Stops the automatic garbage collector.  No automatic collection occurs until `processing.startCollector()` is called.  Manual collection via `processing.collect()` remains available.  The heap grows without bound while the collector is stopped, so restart it as soon as the phase that required stopping is complete.
 
 [discrete]
 ==== processing.startCollector()

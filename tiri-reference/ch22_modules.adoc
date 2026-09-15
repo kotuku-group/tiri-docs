@@ -149,9 +149,9 @@ Some module functions return multiple results.  In C/C++, result parameters are 
 
 [source,tiri]
 ----
--- C prototype: ERR ListMemory(INT Flags, ListMemory **Memory)
+-- C prototype: ERR ListChildren(OBJECTID Object, kt::vector<ChildEntry> *List)
 -- Tiri call:
-err, list = mSys.ListMemory(0)
+err, list = mSys.ListChildren(object_id)
 ----
 
 Functions that return allocated resources are automatically handled by the garbage collector.  Use `local` scoping to ensure timely cleanup.
@@ -202,13 +202,13 @@ When calling functions that copy results to a user-supplied buffer, pass an arra
 
 [source,tiri]
 ----
-buffer = array<byte, file.size>
+local buffer = array<byte, file.size>
 err, result = file.acRead(buffer) <1>
 print(tostring(buffer))
 
-buffer = string.alloc(file.size)
-err, result = file.acRead(buffer)
-print(buffer)
+local text = string.alloc(file.size)
+err, result = file.acRead(text)
+print(text)
 ----
 <1> The size parameter is omitted after the buffer; Tiri passes the buffer's length automatically
 
@@ -225,7 +225,7 @@ indexterm:[include directive] The `include` directive loads the interface defini
 include 'xml', 'display'
 ----
 
-Each module name must be a non-empty alphanumeric string.  Variables, expressions, or invalid names raise a parse error.
+Each module name must be a non-empty alphanumeric string of fewer than 32 characters.  Variables, expressions, or invalid names raise a parse error.
 
 [discrete]
 ==== Semantics

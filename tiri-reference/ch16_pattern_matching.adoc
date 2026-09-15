@@ -142,7 +142,7 @@ end
 
 [source,tiri]
 ----
-msg = choose status from
+label = choose status from
    200 -> 'OK'
    else -> choose retry_count from
       0 -> 'Failed (no retry)'
@@ -188,13 +188,13 @@ The guard is not evaluated unless the pattern matches.  This guarantees that gua
 [source,tiri]
 ----
 evaluated = false
-function check()
+function probe()
    evaluated = true
    return true
 end
 
 result = choose 'no match' from
-   'match' when check() -> 'guarded'
+   'match' when probe() -> 'guarded'
    else -> 'else'
 end
 -- evaluated is false: pattern did not match, guard was not called
@@ -566,9 +566,10 @@ end
 .Accumulation in Loops
 [source,tiri]
 ----
+samples = { 1, 2, 1, 3, 1, 0 }
 count = 0
 for i in {0 to 6} do
-   count += choose values[i] from
+   count += choose samples[i] from
       1 -> 1
       else -> 0
    end

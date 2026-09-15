@@ -1,0 +1,311 @@
+@font-face {
+   font-family: "Noto Sans";
+   src: url("../../fonts/NotoSans-Regular.ttf") format("truetype");
+   font-weight: 400;
+}
+
+@font-face {
+   font-family: "Noto Sans";
+   src: url("../../fonts/NotoSans-Bold.ttf") format("truetype");
+   font-weight: 700;
+}
+
+@font-face {
+   font-family: "DejaVu Sans Mono";
+   src: url("../../fonts/DejaVuSansMono.ttf") format("truetype");
+   font-weight: 400;
+}
+
+@page landscape-sheet {
+   size: A4 landscape;
+   margin: 0;
+}
+
+@page portrait-sheet {
+   size: A4 portrait;
+   margin: 0;
+}
+
+:root {
+   --accent: #8f1b0b;
+   --accent-dark: #681408;
+   --ink: #171717;
+   --muted: #595959;
+   --line: #bbb7b4;
+   --shade: #f2f0ef;
+   --paper: #fff;
+}
+
+* {
+   box-sizing: border-box;
+}
+
+html,
+body {
+   margin: 0;
+   padding: 0;
+   background: #aaa;
+   color: var(--ink);
+   font-family: "Noto Sans", sans-serif;
+   font-size: 7.8pt;
+   line-height: 1.2;
+}
+
+.sheet {
+   page: landscape-sheet;
+   position: relative;
+   display: flex;
+   width: 297mm;
+   height: 210mm;
+   margin: 8mm auto;
+   padding: 7mm 9mm 6mm;
+   flex-direction: column;
+   overflow: hidden;
+   background: var(--paper);
+   box-shadow: 0 1mm 4mm #666;
+   break-after: page;
+}
+
+.sheet:last-child {
+   break-after: auto;
+}
+
+.page-header {
+   display: flex;
+   min-height: 9mm;
+   margin-bottom: 1.7mm;
+   align-items: center;
+   justify-content: space-between;
+   border-bottom: 0.45mm solid var(--ink);
+}
+
+.title {
+   color: var(--accent);
+   font-size: 13.2pt;
+   font-weight: 700;
+   line-height: 1;
+   letter-spacing: -0.025em;
+}
+
+.brand {
+   display: flex;
+   align-items: center;
+   gap: 2.2mm;
+   color: var(--accent);
+   font-size: 6.2pt;
+   font-weight: 700;
+   letter-spacing: 0.085em;
+   text-transform: uppercase;
+}
+
+.brand img {
+   width: 6mm;
+   height: 6mm;
+}
+
+.strapline {
+   margin: 0 0 1.8mm;
+   padding: 1.1mm 1.5mm;
+   border-left: 0.65mm solid var(--accent);
+   background: var(--shade);
+   font-size: 7.05pt;
+}
+
+.columns {
+   display: grid;
+   min-height: 0;
+   flex: 1;
+   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+   gap: 6.5mm;
+}
+
+.column {
+   min-width: 0;
+}
+
+.column + .column {
+   padding-left: 6.5mm;
+   border-left: 0.22mm solid var(--line);
+}
+
+.section {
+   margin: 0 0 1.8mm;
+   break-inside: avoid;
+}
+
+h2 {
+   margin: 0 0 0.65mm;
+   padding: 0.72mm 1.15mm 0.62mm;
+   background: var(--accent);
+   color: #fff;
+   font-size: 7.9pt;
+   line-height: 1;
+   letter-spacing: 0.07em;
+   text-transform: uppercase;
+}
+
+h3 {
+   margin: 0.9mm 0 0.45mm;
+   color: var(--accent-dark);
+   font-size: 7.2pt;
+   line-height: 1;
+}
+
+p {
+   margin: 0 0 0.8mm;
+}
+
+.note {
+   margin: 0.8mm 0 0;
+   font-size: 7.05pt;
+}
+
+.warning {
+   padding: 0.8mm 1.15mm;
+   border-left: 0.55mm solid var(--accent);
+   background: var(--shade);
+}
+
+code,
+pre {
+   font-family: "DejaVu Sans Mono", monospace;
+}
+
+code {
+   font-size: 6.9pt;
+}
+
+pre {
+   margin: 0 0 0.8mm;
+   padding: 1mm 1.25mm;
+   border-left: 0.55mm solid var(--ink);
+   background: var(--shade);
+   font-size: 6.7pt;
+   line-height: 1.27;
+   white-space: pre-wrap;
+}
+
+.comment {
+   color: var(--muted);
+}
+
+table {
+   width: 100%;
+   margin: 0;
+   border-collapse: collapse;
+   table-layout: fixed;
+}
+
+th,
+td {
+   padding: 0.48mm 0.7mm;
+   border-bottom: 0.18mm solid #cbc8c6;
+   vertical-align: top;
+   text-align: left;
+}
+
+th {
+   background: #e8e5e3;
+   font-size: 6.4pt;
+   font-weight: 700;
+   letter-spacing: 0.045em;
+   text-transform: uppercase;
+}
+
+tbody tr:nth-child(even) {
+   background: #f6f5f4;
+}
+
+td:first-child,
+th:first-child {
+   width: 35%;
+}
+
+.api td:first-child,
+.api th:first-child {
+   width: 50%;
+}
+
+.narrow-first td:first-child,
+.narrow-first th:first-child {
+   width: 27%;
+}
+
+.three-col td:first-child,
+.three-col th:first-child {
+   width: 24%;
+}
+
+.three-col td:nth-child(2),
+.three-col th:nth-child(2) {
+   width: 24%;
+}
+
+.compact td,
+.compact th {
+   padding-top: 0.39mm;
+   padding-bottom: 0.39mm;
+}
+
+.split-grid {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   gap: 2.2mm;
+}
+
+.split-grid .narrow-first td:first-child,
+.split-grid .narrow-first th:first-child {
+   width: 57%;
+}
+
+ul {
+   margin: 0.4mm 0 0;
+   padding-left: 3.7mm;
+}
+
+li {
+   margin: 0 0 0.32mm;
+}
+
+.page-number {
+   color: var(--accent);
+   font-weight: 700;
+}
+
+body.portrait .sheet {
+   page: portrait-sheet;
+   width: 210mm;
+   height: 297mm;
+   padding: 8mm 9mm 7mm;
+}
+
+body.portrait .columns {
+   gap: 5mm;
+}
+
+body.portrait .column + .column {
+   padding-left: 5mm;
+}
+
+body.portrait .split-grid {
+   grid-template-columns: 1fr;
+   gap: 0;
+}
+
+body.portrait code {
+   overflow-wrap: anywhere;
+}
+
+@media print {
+   html,
+   body {
+      background: transparent;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+   }
+
+   .sheet {
+      margin: 0;
+      box-shadow: none;
+   }
+}

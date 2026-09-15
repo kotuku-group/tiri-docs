@@ -504,11 +504,11 @@ indexterm:[arrays, creation] The `array<type>` syntax creates arrays with concis
 
 [source,tiri]
 ----
-arr = array<int>                     -- empty array
-arr = array<int, 5>                  -- 5 elements, zero-initialised
-arr = array<int> { 10, 20, 30 }      -- 3 elements with values
-arr = array<int, 10> { 1, 2, 3 }     -- 10 elements; first 3 set, rest zero
-arr = array<str> { 'a', 'b', 'c' }   -- string array with values
+local arr = array<int>                     -- empty array
+local arr = array<int, 5>                  -- 5 elements, zero-initialised
+local arr = array<int> { 10, 20, 30 }      -- 3 elements with values
+local arr = array<int, 10> { 1, 2, 3 }     -- 10 elements; first 3 set, rest zero
+local arr = array<str> { 'a', 'b', 'c' }   -- string array with values
 ----
 
 When both a size and initial values are provided, the array is first populated with the values, then extended to the specified size.  Extended elements are zero-initialised for numeric types or `nil` for reference types.  If the number of values exceeds the size, the values take precedence.
@@ -531,9 +531,9 @@ Creates an array of `Size` elements with the specified element `Type` string.  B
 
 [source,tiri]
 ----
-arr = array.new('int', 100)
-arr = array.new('double', 50)
-arr = array.new('array<int>', 4)   -- rawtype 'array<array<int>>'
+local arr = array.new('int', 100)
+local arr = array.new('double', 50)
+local arr = array.new('array<int>', 4)   -- rawtype 'array<array<int>>'
 ----
 
 ==== array.of()
@@ -544,8 +544,8 @@ Creates an array populated with the given values.  At least one value is require
 
 [source,tiri]
 ----
-arr = array.of('str', 'google.com', 'kotuku.dev')
-arr = array.of('int', 1, 2, 3, 4, 5)
+local arr = array.of('str', 'google.com', 'kotuku.dev')
+local arr = array.of('int', 1, 2, 3, 4, 5)
 ----
 
 NOTE: The typed syntax `array<int> { 1, 2, 3 }` is preferred over `array.of()` for readability.
@@ -950,23 +950,23 @@ An unsigned array constrains the permitted conversion, because the element is pa
 
 Incompatible conversions raise an error.
 
-Concatenation is only available for primitive array types that consist of string and number elements.  Attempting to concatenate table, struct or object elements raises an error.
+Concatenation is only available for primitive array types that consist of string and number elements.  The `table`, `array`, `obj`, `struct` and `any` element types raise an error.
 
 An error is raised if `Start` or `Stop` is negative, or greater than the array length.  A `Stop` equal to the array length is valid and selects through to the final element.  If `Stop` is not greater than `Start`, an empty string is returned; this includes an explicit `0, 0` span on an empty array.  Empty arrays are converted to an empty string.
 
 [source,tiri]
 ----
-arr = array<str> { 'hello', 'world' }
+local arr = array<str> { 'hello', 'world' }
 arr.concat(' ')          -- 'hello world'
 arr.concat()             -- 'helloworld'
 
-arr = array<int> { 1, 2, 3 }
+local arr = array<int> { 1, 2, 3 }
 arr.concat('-')          -- '1-2-3'
 
-arr = array<int> { 10, 20, 30 }
+local arr = array<int> { 10, 20, 30 }
 arr.concat(', ', '%d')   -- '10, 20, 30'
 
-arr = array<float> { 1.5, 2.7 }
+local arr = array<float> { 1.5, 2.7 }
 arr.concat(' | ', '%.1f')   -- '1.5 | 2.7'
 ----
 
@@ -990,19 +990,19 @@ Sub-range concatenation with `Start` and `Stop`:
 
 [source,tiri]
 ----
-arr = array<str> { 'a', 'b', 'c', 'd' }
+local arr = array<str> { 'a', 'b', 'c', 'd' }
 arr.concat(',', nil, 1, 3)      -- 'b,c'
 arr.concat(',', nil, 0, #arr)   -- 'a,b,c,d'
 arr.concat(',', nil, 2, 2)      -- '': an empty span
 
-arr = array<int> { 1, 2, 3, 4 }
+local arr = array<int> { 1, 2, 3, 4 }
 arr.concat('-', '%02d', 1, 4)   -- '02-03-04'
 ----
 
 [discrete]
 ==== Byte Array String Methods
 
-These methods are available only on byte (`byte`, `char`, `uint8`) arrays.
+These methods are available only on `byte` arrays (equivalently, `char`).  Calling them on an `int8` or `uint8` array raises an error.
 
 [.api]`str = arr.getString([Start, Length])`
 

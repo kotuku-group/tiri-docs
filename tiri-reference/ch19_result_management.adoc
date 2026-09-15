@@ -54,7 +54,7 @@ Function parameters:: The parameter receives the argument value but discards it.
 [%unbreakable]
 [source,tiri]
 ----
-function second(_, X)
+function second(_, X):any
    return X
 end
 

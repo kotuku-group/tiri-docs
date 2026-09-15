@@ -35,14 +35,16 @@ Available options for `Mode` are as follows:
 |Read only.
 
 |`w`
-|Create new file in read/write mode.  Overwrites any existing file at the path.
+|Write only.  Creates a new file, overwriting any existing file at the path.
 
 |`a`
-|Append to existing file in read/write mode.  Creates the file if it does not exist.  The write position starts at the end of the file.
+|Write only.  Appends to an existing file, creating it if it does not exist.  The write position starts at the end of the file.
 
 |`+`
-|Open existing file in read/write mode.
+|Read and write.  Opens an existing file without truncating it.
 |===
+
+Mode characters combine.  Reading from a handle that was not opened with `r` or `+` returns `nil`, so use `'w+'` to create a new file with read and write access, and `'a+'` to append with read access.
 
 ==== io.close()
 
@@ -199,7 +201,7 @@ Removes repeated consecutive path separator characters (`/`, `\`, `:`) from `Pat
 [source,tiri]
 ----
 print(io.sanitisePath('system://users///file.txt'))
--- 'system:/users/file.txt'
+-- 'system:users/file.txt'
 ----
 
 [[sec-file-handle-methods]]
@@ -335,7 +337,7 @@ import 'io/filesearch'
 
 [.api]`io.search(Path, Options)`
 
-Searches for files and folders starting from `Path`.  `Path` is a string referencing a folder or file, or an array of path strings to search multiple locations.  `Options` is a table controlling the search behaviour.
+Searches for files and folders starting from `Path`.  `Path` is a string referencing a folder or file, or a collection of path strings to search multiple locations.  `Options` is a table controlling the search behaviour.
 
 [source,tiri]
 ----
@@ -359,13 +361,17 @@ io.search('documents:', {
 |string / regex
 |Include file/folder names that match this value.  A string performs an exact match.  A compiled regex object performs pattern matching.
 
+|`excludeFilter`
+|string / regex
+|Exclude file/folder names matching this exact string or compiled regex.  Excluded folders are still traversed; use `shouldDescend` to prune them.
+
 |`contentFilter`
 |string
 |Include files that contain this content.
 
 |`caseSensitive`
 |boolean
-|Controls how `nameFilter` is applied.  When omitted or `false`, the candidate file name is converted to lowercase before matching.  String filters and regex patterns must therefore be written for lowercase input.  When `true`, the original file name is used.
+|Controls how `nameFilter` and `excludeFilter` are applied.  When omitted or `false`, string comparisons ignore case and regex filters are internally compiled with `regex.ICASE`.  When `true`, strings are compared exactly and each regex uses its original flags.
 
 |`matchFeedback`
 |function
@@ -374,6 +380,22 @@ io.search('documents:', {
 |`ignoreFeedback`
 |function
 |Called each time a file fails to pass filter matches.  Synopsis: `function(Path, FileName, File)`.  Return `ERR_Terminate` to stop the search.
+
+|`errorFeedback`
+|function
+|Called when a path cannot be inspected or file content cannot be read.  Synopsis: `function(Path, Error)`.  `Error` is an ERR code or exception.  Return `ERR_Terminate` to stop the search.
+
+|`strict`
+|boolean
+|Raise file-system errors after calling `errorFeedback`, rather than continuing the search.
+
+|`cancelCheck`
+|function
+|Called periodically as `function(Matches)`, where `Matches` is the number of accepted results.  Return `true` or `ERR_Terminate` to stop the search.
+
+|`cancelToken`
+|table
+|A shared table whose `cancelled` field can be set to `true` to stop the search.
 
 |`minSize`
 |number
@@ -403,18 +425,34 @@ io.search('documents:', {
 |boolean
 |Do not scan files.  Use in conjunction with `matchFolders` to search for directories only.
 
+|`minDepth`
+|number
+|Minimum depth at which entries can match.  `0` includes the current directory, `1` starts one level below it, and so on.
+
 |`maxDepth`
 |number
 |Maximum depth to recurse into subdirectories.  `0` searches the current directory only, `1` searches one level deep, and so on.  If omitted, recursion is unlimited.
+
+|`maxResults`
+|number
+|Stop after this many matching entries.  Values less than or equal to zero suppress all matches.
+
+|`shouldDescend`
+|function
+|Called as `function(Path, Folder)` before entering each subfolder.  Return `true` to recurse, `false` to prune that folder tree, or `ERR_Terminate` to stop the search.
 |===
 
 When searching files for content, apply a `nameFilter` or size limit so that only a controlled number of files are opened for reading.
+
+All filters and callbacks apply consistently whether `Path` identifies a single file or a folder.  File-system errors are
+ignored by default unless `errorFeedback` or `strict` is specified.  Folder paths are accepted with or without a trailing
+path separator.
 
 Symbolic links to directories are not followed to avoid infinite recursion.
 
 [[sec-file-manager]]
 === File Manager
-indexterm:[file system, manager] The File Manager extension provides file management operations with integrated UI feedback.  Progress dialogs appear automatically for long-running operations, and the user is prompted before overwriting existing files.
+indexterm:[file system, manager] The File Manager extension provides file management operations with integrated UI feedback.  Progress dialogs appear automatically for long-running operations, and the user is prompted before destructive operations are processed.
 
 Load it with:
 
@@ -423,11 +461,13 @@ Load it with:
 import 'io/filemgr'
 ----
 
+NOTE: The copy, paste and delete operations can block at any time if the user is required to respond to an operation.  Use these features in an asynchronous code block if this is an issue.
+
 ==== io.ui.copy()
 
 [.api]`error = io.ui.copy(Source, Dest, [Move])`
 
-Copies the file or files specified by `Source` to the folder specified by `Dest`.  `Source` is a file path string or an array of path strings.  If `Move` is `true`, each source file is deleted after a successful copy.
+Copies the file or files specified by `Source` to the folder specified by `Dest`.  `Source` is a file path string or a collection of path strings.  If `Move` is `true`, each source file is deleted after a successful copy.  Raises an exception if `Source` is neither a string nor a collection.
 
 Returns an `ERR` code.  If the user cancels the operation, `ERR_Cancelled` is returned.  Errors are presented to the user with a dialog box and are not raised as exceptions.
 
@@ -441,7 +481,7 @@ Pastes files from the system clipboard to the destination path `Dest`.  Files ma
 
 [.api]`io.ui.delete(Paths)`
 
-Deletes the file or folder identified by `Paths`, which is a string or array of strings.  A progress dialog appears if the operation takes longer than expected.
+Deletes the file or folder identified by `Paths`, which is a string or a collection of strings.  A progress dialog appears if the operation takes longer than expected.  Raises an exception if `Paths` is neither a string nor a collection.
 
 [[sec-the-kotuku-file-object]]
 === The Kōtuku File Object
@@ -468,7 +508,7 @@ When the `path` field is set with `FL_READ`, `FL_WRITE`, or `FL_NEW` flags, the 
 [discrete]
 ==== Fields
 
-The File object exposes the following fields:
+The File object exposes the following fields.  Filesystem dependent values are typically set to zero when unsupported by the host.
 
 [cols="3,2,12",options="header"]
 |===
@@ -492,11 +532,11 @@ The File object exposes the following fields:
 
 |`flags`
 |R/W
-|File flags (see below).
+|File flags expressed as FL constants (see below).
 
 |`permissions`
 |R/W
-|File permission bits.
+|File permissions expressed as PERMIT constants (filesystem dependent).
 
 |`date`
 |R/W
@@ -517,6 +557,22 @@ The File object exposes the following fields:
 |`link`
 |R/W
 |The target path for symbolic links.
+
+|`buffer`
+|R
+|An `array<byte>` referencing the internal data buffer when the content is held in memory (see `FL_BUFFER`).
+
+|`handle`
+|R
+|The native system handle for the opened file.
+
+|`user`
+|R/W
+|The owning user ID of the file (filesystem dependent).
+
+|`group`
+|R/W
+|The owning group ID of the file (filesystem dependent).
 |===
 
 [discrete]
@@ -542,6 +598,18 @@ The following flags control file behaviour when passed in the `flags` field at c
 
 |`FL_FOLDER`
 |Indicates the object represents a folder.
+
+|`FL_APPROXIMATE`
+|Match the file path without regard to its extension, selecting the first file encountered that matches the name.
+
+|`FL_EXCLUSIVE`
+|Create the file only if its path does not already exist.  Requires `FL_NEW`.  Not supported by the `std:` and `string:` volumes.
+
+|`FL_DEVICE`
+|The path refers to a system device.  Required when opening a device for read or write access.
+
+|`FL_VIRTUAL`
+|Read-only.  Indicates that the path refers to a virtual device.
 
 |`FL_LINK`
 |Read-only.  Indicates the file is a symbolic link.
@@ -599,32 +667,50 @@ fl.acSeek(0, SEEK_START)
 
 |`acFlush()`
 |Flushes buffered data to disk.
+
+|`acRename(Name)`
+|Changes the name of the file.
+
+|`acReset()`
+|When the object represents a folder, resets the file list index used by `mtNext()`.
 |===
 
 [discrete]
 ==== Methods
 
-[cols="1,3",options="header"]
+[cols="5,10",options="header"]
 |===
 |Method |Description
 
 |`mtNext()`
 |When the object represents a folder, returns the next file in the folder index as a new File object.  Returns `err, file` where `err` is `ERR_EndOfSequence` when no more entries remain.
 
-|`mtCopy(Dest)`
-|Copies the file or folder to `Dest`.  Recursively copies folder contents.
+|`mtCopy(Dest, [Callback])`
+|Copies the file or folder to `Dest`, recursively copying folder contents.  The object must have been initialised with `FL_READ` unless it represents a folder.  The optional `Callback` receives progress feedback.  Resets `position`.
 
-|`mtMove(Dest)`
-|Moves the file or folder to `Dest`.
+|`mtMove(Dest, [Callback])`
+|Moves the file or folder to `Dest`.  The optional `Callback` receives progress feedback.
 
-|`mtDelete()`
-|Deletes the file or folder and all of its contents.
+|`mtDelete([Callback])`
+|Deletes the file or folder and all of its contents.  The optional `Callback` receives progress feedback.
+
+|`mtReadLine()`
+|Reads the next line from the file and returns it as a string.
+
+|`mtBufferContent()`
+|Reads the entire file content into an internal memory buffer, accessible through the `buffer` field.
+
+|`mtStartStream(Subscriber, Flags, Length)`
+|Starts streaming data to or from the file.  `Subscriber` receives streamed data notifications, `Flags` is `FL_READ` for incoming data or `FL_WRITE` for outgoing data, and `Length` limits the total amount streamed.
+
+|`mtStopStream()`
+|Stops an active stream.
 
 |`mtSetDate(Year, Month, Day, Hour, Minute, Second, Type)`
-|Sets the file's date stamp.  `Type` is `FDT_MODIFIED`, `FDT_CREATED`, or `FDT_ACCESSED`.
+|Sets the file's date stamp.  `Type` is `FDT_MODIFIED`, `FDT_CREATED`, `FDT_ACCESSED`, or `FDT_ARCHIVED`.
 
-|`mtWatch(Callback, Custom, Flags)`
-|Monitors the file or folder for filesystem events.  `Flags` controls which events trigger the callback (e.g. `MFF_CREATE`, `MFF_DELETE`, `MFF_MODIFY`).
+|`mtWatch([Callback], [Flags])`
+|Monitors the file or folder identified by `path` for filesystem events.  `Flags` filters the events that trigger the callback (e.g. `MFF_CREATE`, `MFF_DELETE`, `MFF_MODIFY`).  Calling the method with no parameters, or with `Flags` set to `MFF_NIL`, disables an existing watch.  Support is platform-dependent.
 |===
 
 ==== Folder Enumeration
@@ -657,14 +743,14 @@ folder = obj<File> {
 
 ==== File Watching
 
-The `mtWatch()` method monitors a file or folder for filesystem events.  Callbacks are dispatched in the event loop.
+The `mtWatch()` method monitors a file or folder for filesystem events.  Callbacks are dispatched in the event loop.  The callback receives the File object, the event path relative to the object's `path` field, and the `MFF` flags describing the event that occurred.  Events are delivered in the sequence in which they are raised.
 
 [source,tiri]
 ----
 fl = obj<File> { path='temp:' }
-fl.mtWatch(function(File, Path, Custom, Flags)
+fl.mtWatch(function(File, Path, Flags)
    print(f'Event on {Path}: {Flags}')
-end, 0, MFF_CREATE | MFF_DELETE | MFF_MODIFY)
+end, MFF_CREATE | MFF_DELETE | MFF_MODIFY)
 
 processing.sleep()
 ----
@@ -725,11 +811,25 @@ The following volumes are available on all platforms:
 |`home:`
 |User's home directory.
 
+|`hosttemp:`
+|The host operating system's own temporary folder.
+
+|`archive:`
+|Virtual volume providing read access to the contents of compressed archives.
+|===
+
+Storage device volumes are registered at startup according to the hardware that is present, so their availability is
+platform-dependent:
+
+[cols="1,5",options="header"]
+|===
+|Volume |Description
+
 |`drive1:`
 |Root filesystem (`/` or `C:\`).
 
-|`driveN:`
-|Additional mounted filesystems (`drive2:`, `drive3:`, pass:[...]).
+|_(drive letter)_
+|On Windows, each fixed drive is registered under its own letter, e.g. `c:`, `d:`.
 
 |`cdN:`
 |CD-ROM drives (`cd1:`, `cd2:`, pass:[...]).
@@ -752,9 +852,12 @@ The following volumes are available on all platforms:
 |Unix system resources (`/usr`).
 |===
 
+[%unbreakable]
+--
 **Windows:**
 
-Additional device volumes are enumerated at startup: `usbN:` for USB drives, `portN:` for removable media, and `netN:` for network drives.
+Device volumes are enumerated at startup: fixed drives under their drive letter (`c:`, `d:`), `usbN:` for USB drives, `portN:` for other removable media, `cdN:` for CD-ROM drives, and `netN:` for network drives.
+--
 
 [discrete]
 ==== Standard I/O Volumes
@@ -777,6 +880,8 @@ The `std:` volume provides access to the standard process I/O streams:
 |===
 
 These paths are used internally by `io.input()` and `io.output()` to initialise the default input and output file handles.
+
+The `string:` volume constructs an in-memory file from the remainder of the path, so `obj<File> { path='string:Hello' }` yields a readable and writable buffer holding `Hello`.  Neither `std:` nor `string:` supports `FL_EXCLUSIVE`.
 
 [discrete]
 ==== Volume Chaining
@@ -850,13 +955,13 @@ The `mSys.AnalysePath()` function checks whether a path exists and identifies wh
 
 [source,tiri]
 ----
-err, type = mSys.AnalysePath('user:')
+err, loc_type = mSys.AnalysePath('user:')
 if err is ERR_Okay then
-   if type is LOC_VOLUME then
+   if loc_type is LOC_VOLUME then
       print('Path is a registered volume')
-   elseif type is LOC_FOLDER then
+   elseif loc_type is LOC_FOLDER then
       print('Path is a folder')
-   elseif type is LOC_FILE then
+   elseif loc_type is LOC_FILE then
       print('Path is a file')
    end
 else

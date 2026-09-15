@@ -31,16 +31,16 @@ TIP: Use `io.write()` for program output on stdout.
 
 [.api]`msg(pass:[...])`
 
-Writes each argument to the Kōtuku logging system at API level, under the `Tiri` header.  Each argument is converted to a string via `tostring()`.  No word-breaks are inserted between parameters.
+Writes each argument to the Kōtuku logging system at Info level, under the `Tiri` header.  Each argument is converted to a string via `tostring()` and written as a separate log entry, so a call with multiple arguments produces multiple log lines.
 
 [source,tiri]
 ----
 msg('request received')
 msg(f'status: {result}') -- Inline formatting with f-strings
-msg('status: ', result)  -- Multiple arguments concatenated without spaces
+msg('status: ', result)  -- Two arguments: two log entries
 ----
 
-Use `msg()` for diagnostic output that requires Kōtuku log filtering.  It is visible with `--log-api` or a more verbose level and writes to stderr.
+Use `msg()` for diagnostic output that requires Kōtuku log filtering.  It is visible with `--log-info` or a more verbose level and writes to stderr.  Use an f-string to emit a single formatted entry.
 
 Raises an error if `tostring()` does not return a string for any argument.
 
@@ -53,25 +53,30 @@ indexterm:[log levels] Kōtuku's logging system organises output by severity.  L
 |Level |Description |Command-line flag
 
 |Trace
-|Extremely verbose debug output.  Available in Debug builds only when built with `-DKOTUKU_VLOG=ON`, and requires `--log-trace` or `--log-all` at runtime.
+|Extremely verbose debug output.  Trace messages are compiled into Debug builds only; Release builds omit them entirely.
 |`--log-trace` +
 `--log-all`
+
+|Debug
+|Debug messages only appear in Debug builds.
+|`--log-debug`
 
 |Detail
 |Extended log level for API modules (C++) and Tiri libraries.  For in-depth module diagnostics.
 |`--log-xapi`
 
 |API
-|The standard level for API modules (C++) and Tiri libraries.  This is the level used by `msg()`.
+|The standard level for API modules (C++) and Tiri libraries.
 |`--log-api`
 
 |Info
-|The standard level for log messages originating from the client program.
+|The standard level for log messages originating from the client program.  This is the level used by `msg()`.
 |`--log-info`
 
 |Warning
 |Non-catastrophic errors are printed as warnings.  API errors are always printed at this level (elevation to the user is at the program's discretion).
-|`--log-warning`
+|`--log-warning` +
+`--log-warn`
 
 |Error
 |Error conditions intended for end-user visibility.
@@ -116,26 +121,28 @@ Captures a snapshot of the script's runtime state and returns it as a formatted 
 |Global variables, with names and values.
 
 |`memory`
-|Memory usage information including heap allocation.
+|Heap usage reported by the garbage collector.
 
 |`state`
-|VM state information including stack top.
+|VM state information: the stack top and the active debug hook mask.
 
 |`funcinfo`
 |Function metadata: parameter count, vararg flag, stack slots, bytecode count, constants and upvalue count.
 
 |`disasm`
-|Bytecode disassembly of the current function.
+|Bytecode disassembly of the current function.  `bytecode` is accepted as an alias.
 
 |`dump`
 |Binary dump of the function's bytecode in hexadecimal format.
 
 |`all`
-|All of the above categories.
+|Every category above except `dump`.
 
 |`compact`
 |Compact output mode.  Combine with other options to reduce verbosity.
 |===
+
+The `stack`, `locals` and `upvalues` categories require an active Tiri call frame and are therefore available only when `DebugLog()` is called from inside the script.  An external caller receives an empty section for those categories, and a warning is written to the log.
 
 [source,tiri]
 ----

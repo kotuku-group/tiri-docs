@@ -4,7 +4,7 @@
 == Origo
 indexterm:[Origo] Origo is the command-line executable that runs Tiri scripts.  It initialises the Kōtuku framework, parses command-line options, resolves the target script, passes arguments to the script environment, and manages the execution lifecycle.
 
-On Linux systems the `tiri` symlink can also be used as an alternative.
+On Linux and MacOS the `tiri` symlink can also be used as an alternative.
 
 [discrete]
 [[sec-usage]]
@@ -15,7 +15,7 @@ On Linux systems the `tiri` symlink can also be used as an alternative.
 origo [options] [script.tiri] [arg1] [arg2=value] ...
 ----
 
-If no script path is provided, Origo attempts automatic detection (see <<sec-automatic-script-detection>>).  Options are case-insensitive and begin with `--`.  Unrecognised options beginning with `--` are silently ignored.  All arguments after the script path are forwarded to the script as parameters accessible through `arg()` (see <<sec-script-parameters>>).
+If no script path, `--statement` or `--dialog` is provided, Origo attempts automatic detection (see <<sec-automatic-script-detection>>).  Options begin with `--`.  Origo's own options are matched case-sensitively and must be given in lower case; the framework options intercepted by the Kōtuku core (see <<sec-origo-framework-options>>) are case-insensitive.  Unrecognised options beginning with `--` are silently ignored.  All arguments after the script path are forwarded to the script as parameters accessible through `arg()` (see <<sec-script-parameters>>).
 
 [discrete]
 [[sec-commandline-options]]
@@ -34,7 +34,7 @@ If no script path is provided, Origo attempts automatic detection (see <<sec-aut
 |Prints version information on three lines — version number, git branch and commit hash, and build type — then exits.
 
 |`--time`
-|Prints the script execution time in seconds to stdout after the script completes.
+|Prints the script execution time in seconds to stdout after the script completes.  The core additionally prefixes every log message with an elapsed timestamp.
 
 |`--dialog`
 |Displays an interactive file dialog for choosing a script to execute.
@@ -45,14 +45,23 @@ If no script path is provided, Origo attempts automatic detection (see <<sec-aut
 |`--procedure <name>`
 |Specifies the name of a procedure/function within the script to execute.
 
+|`--cache`
+|Enables automatic caching of compiled scripts.  Eligible file-backed scripts are cached under `temp:tiri/cache/`.
+
+|`--backstage [port]`
+|Loads the `backstage` module, which enables the Backstage REST API.  An optional port number can follow.
+
+|`--audio-device <name>`
+|Selects the audio output device.
+
 |===
 
 [discrete]
 ==== Logging
 
-All log output is directed to stderr.  Command-line flags control the minimum visible log level; each flag enables its level and all levels above it.  See <<sec-log-levels>> for the full level hierarchy and available flags.
+Log output is directed to stderr unless `--log-file <path>` or `--log-file=<path>` is given, which redirects it to a file and raises the log level to API level if it is currently lower.  Command-line flags control the minimum visible log level; each flag enables its level and all levels above it.  See <<sec-log-levels>> for the full level hierarchy and available flags.
 
-When debugging thread-related issues, append `--log-threads` to include thread identification in log output.
+When debugging thread-related issues, append `--log-threads` to include thread identification in log output.  `--sync` flushes log output synchronously, which helps when messages are interleaved or lost when segfaulting.
 
 [discrete]
 [[sec-origo-jit-options]]
@@ -65,7 +74,9 @@ indexterm:[JIT options] The `--jit-options` flag accepts a comma-separated list 
 origo --jit-options trace-tokens,profile myscript.tiri
 ----
 
-NOTE: Enabling `trace` or `profile` automatically raises the log level to `--log-api` if it is not already at that level or higher.  For other options, ensure an appropriate log level is set so that diagnostic output is visible.
+NOTE: Any trace option, whether `trace` or one of the individual `trace-*` options, and `profile` automatically raise the log level to `--log-api` if it is not already at that level or higher.  For the remaining options, ensure an appropriate log level is set so that diagnostic output is visible.
+
+Unrecognised option names are reported as warnings and otherwise ignored.
 
 [discrete]
 ===== Tracing
@@ -156,7 +167,10 @@ The tip system provides style and correctness suggestions during parsing.  Tips 
 |===
 
 [discrete]
+[[sec-origo-framework-options]]
 ==== Framework
+
+The Kōtuku core intercepts the following options before Origo sees them, so they are available to every Kōtuku program.  `--jit-options` is the exception: it is consumed by the Tiri module and is documented in <<sec-origo-jit-options>>.
 
 [cols="2,4a",options="header"]
 |===
@@ -174,8 +188,8 @@ The tip system provides style and correctness suggestions during parsing.  Tips 
 |`--home=<name>`
 |Customises the name of the home folder directory (default: `kotuku`).  This segregates user configuration and cache data.
 
-|`--jit-options <options>`
-|Passes comma-separated options to the JIT compiler.
+|`--no-console`
+|Windows only.  Suppresses the automatic console window.
 |===
 
 [discrete]
@@ -210,8 +224,8 @@ indexterm:[Origo, script arguments] Arguments after the script path are passed t
 |Form |Meaning |Access
 
 |`flag`
-|Boolean flag, set to `'1'`.
-|`arg('flag')` returns `'1'`
+|Boolean flag, set to `'true'`.
+|`arg('flag')` returns `'true'`
 
 |`key=value`
 |Named parameter with a string value.
@@ -255,7 +269,7 @@ Mark the script as executable with `chmod +x script.tiri` to run it directly fro
 === Exit Codes
 Origo returns `0` on successful execution.  A non-zero exit code indicates that the script or framework encountered an error.
 
-If the script sets an explicit error code on its Script object, that error code is returned to the shell.  If the script sets only an error message (with no explicit error code), Origo returns a generic failure code.
+If the script sets an explicit error code on its Script object, that error code is returned to the shell.  An uncaught exception sets that error code, so `raise ERR_OutOfRange` in an unguarded block exits with the numeric value of `ERR_OutOfRange`.  If the script sets only an error message (with no explicit error code), Origo returns a generic failure code.
 
 [discrete]
 [[sec-version-output]]
@@ -265,7 +279,7 @@ The `--version` option prints three lines:
 [source,bash]
 ----
 $ origo --version
-Kotuku 2026.2.27 <1>
+2026.9.13 <1>
 master:5edae466 <2>
 Build Type: Debug <3>
 ----

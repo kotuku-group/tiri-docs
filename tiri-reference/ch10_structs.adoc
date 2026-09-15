@@ -286,14 +286,11 @@ The functions that take an instance as their first argument are also callable as
 
 ==== struct.new()
 
-[.api]`instance = struct.new(StructName, [Fields])` +
-[.api]`instance = struct.new(StructName, Address)`
+[.api]`instance = struct.new(StructName, [Fields])`
 
 Creates a new struct instance from a registered definition identified by `StructName`.  The definition must have been registered through an `include` directive, a `module` declaration (<<sec-module-declarations>>), or a `struct` declaration (<<sec-struct-declarations>>).  Raises an exception if the definition is not found.  Returns a value whose `type()` is `"struct"`.
 
-If `Fields` is a table, the key-value pairs are applied to the corresponding struct fields during creation.  Field values are subject to the assignment rules defined in <<sec-struct-field-access>>; a value that the target field does not accept raises an exception.
-
-If `Address` is provided as a pointer value, the struct references existing memory at that address instead of allocating new memory.
+`Fields` must be a table if specified, and the key-value pairs are applied to the corresponding struct fields during creation.  Field values are subject to the assignment rules defined in <<sec-struct-field-access>>; a value that the target field does not accept raises an exception.
 
 [source,tiri]
 ----
@@ -309,9 +306,6 @@ stop.rgb.alpha = 1.0
 
 -- Create with initial field values
 stop = struct.new('GradientStop', { offset = 0.5 })
-
--- Create from an existing memory address
-tag = struct.new('XMLTag', address)
 ----
 
 ==== struct.size()
@@ -322,9 +316,10 @@ Returns the byte size of a struct definition.  `Target` is either the name of a 
 
 [source,tiri]
 ----
-record = struct.new('User')
+entry = struct.new('User')
 struct.size('User')    -- size of the definition
-struct.size(record)    -- the same size, reached through the instance
+struct.size(entry)     -- the same size, reached through the instance
+entry.size()           -- equivalent instance method
 ----
 
 ==== struct.clone()
@@ -349,24 +344,9 @@ Deep-copies the payload of `Source` into the existing `Dest` instance and return
 
 === Instance Methods
 
-==== ptr() Method
+==== size(), clone() and copy()
 
-[.api]`address = inst.ptr()` +
-[.api]`old_address = inst.ptr(NewAddress)`
-
-Retrieves or replaces the memory address backing the struct.  Returns `nil` if the current address is zero.
-
-Changing the address avoids allocating a new struct instance for each pointer to be processed.  This is useful when iterating over arrays of structs in memory:
-
-[source,tiri]
-----
-tag = struct.new('XMLTag', first_address)
--- Process tag...
-tag.ptr(next_address)
--- Process next tag using the same instance...
-----
-
-WARNING: Modifying the pointer referenced by the struct can corrupt memory.  Avoid this operation unless the caller controls the referenced storage.
+`size()`, `clone()` and `copy()` are reachable as built-in methods on an instance.  Fields sharing these names are still treated as fields when not invoked as functions.
 
 ==== Length Operator
 
@@ -377,7 +357,9 @@ The `#` operator returns the total number of fields in the struct.
 
 Fields are read and written directly on the instance using dot notation.  Field names are matched against the definition case-insensitively.  Reading or writing a name that the definition does not declare raises an exception.
 
-A write validates the category of the value against the field before any storage is changed.  The categories are exact and no conversion between them is attempted: a boolean field accepts only a boolean, a numeric field only a number, and an owned string field only a string.  A value of the wrong category raises `ERR_InvalidType` and leaves the field at its previous value, so a numeric string does not satisfy a numeric field, a number does not satisfy a string field or a character buffer, and `nil` does not clear a scalar field.
+A write validates the category of the value against the field before any storage is changed.  The categories are exact and no conversion between them is attempted: a boolean field accepts only a boolean, a numeric field only a number, and an owned string field only a string.  A value of the wrong category raises `ERR_InvalidType` and leaves the field at its previous value, so a numeric string does not satisfy a numeric field, and a number does not satisfy a boolean field, a string field or a character buffer.
+
+`nil` is accepted only where the field has a defined empty state.  A numeric field accepts `nil` and stores zero.  An object or pointer field accepts `nil` and clears the field.  A boolean field and an owned string field reject `nil` with `ERR_InvalidType` and retain their previous value.
 
 The value produced by a read, and the values accepted by a write, depend on the field's declared type:
 
@@ -386,25 +368,25 @@ The value produced by a read, and the values accepted by a write, depend on the 
 |Field category |Behaviour
 
 |Boolean (`bool`)
-|Reads and writes a boolean.
+|Reads and writes a boolean.  `nil` and every other category raise an exception.
 
 |Scalar numeric (`char`, `int8`, `byte`, `int16`, `int`, `int64`, `float`, `double` and unsigned variants)
-|Reads and writes a number, converted as defined in <<sec-struct-numeric-conversion>>.  Unsigned fields preserve the full unsigned range of the storage width.
+|Reads and writes a number, converted as defined in <<sec-struct-numeric-conversion>>.  Unsigned fields preserve the full unsigned range of the storage width.  `nil` stores zero.
 
 |Object (`obj`, `obj<Class>`)
 |Reads as a native object (`type()` is `"object"`), or `nil` when unset.  Accepts an object or `nil` on assignment; assigning `nil` clears the field.  A constrained field (`obj<Class>`) accepts instances of the named class or a sub-class of it; any other class raises an exception.  Assigning a detached object wrapper raises an exception.
 
 |Owned string (`str`)
-|Reads and writes a string.  The struct owns the string storage.
+|Reads and writes a string.  The struct owns the string storage.  `nil` raises an exception.
 
 |Raw C string (`cstr`)
-|Reads a string.  Assignment is not supported and raises an exception.
+|Reads a string, or `nil` when the pointer is null.  Assignment is not supported and raises an exception.
 
 |Character buffer (`char[N]`)
 |Reads as a string.  Accepts a string or byte array on assignment.
 
 |Pointer (`ptr`)
-|A null pointer reads as `nil`; a non-null pointer reads as userdata.  Accepts userdata or `nil` on assignment.
+|A null pointer reads as `nil`; a non-null pointer reads as light userdata.  Accepts light userdata or `nil` on assignment; every other category raises an exception.
 
 |Struct pointer (`ptr<Name>`)
 |A null pointer reads as `nil`; a non-null pointer reads as a struct view over the referenced memory.

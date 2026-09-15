@@ -36,7 +36,7 @@ Long comments support level-matching delimiters using `=` signs between the brac
 ----
 --[=[
 This long comment can contain ]] without terminating,
-because the closing delimiter must be ]=].
+because the closing delimiter carries one '=' sign.
 --]=]
 ----
 
@@ -74,17 +74,23 @@ The following words are reserved and cannot be used as identifiers:
 
 [cols="6*^"]
 |===
-|`and`      |`as`      |`break`   |`check`    |`checkall` |`choose`
-|`continue` |`defer`   |`do`      |`else`     |`elseif`   |`end`
-|`enum`     |`except`  |`extern`  |`false`    |`for`      |`from`
-|`function` |`global`  |`has`     |`if`       |`import`   |`in`
-|`is`       |`local`   |`namespace`|`nil`     |`not`      |`or`
-|`raise`    |`repeat`  |`return`  |`success`  |`then`     |`thunk`
-|`true`     |`try`     |`until`   |`using`    |`when`     |`while`
-|`with`     |          |          |           |           |
+|`and`      |`as`       |`await`     |`break`   |`check`   |`checkall`
+|`choose`   |`class`    |`continue`  |`defer`   |`do`      |`else`
+|`elseif`   |`end`      |`enum`      |`except`  |`export`  |`extends`
+|`extern`   |`false`    |`finally`   |`for`     |`from`    |`function`
+|`global`   |`has`      |`if`        |`import`  |`in`      |`interface`
+|`is`       |`local`    |`namespace` |`nil`     |`not`     |`or`
+|`raise`    |`record`   |`repeat`    |`return`  |`success` |`then`
+|`thunk`    |`true`     |`try`       |`until`   |`using`   |`when`
+|`where`    |`while`    |`with`      |`yield`   |          |
 |===
 
 Keywords are case-sensitive.  A reserved word remains available as a table member name, so `t.using` and `t.with` are valid field accesses.
+
+[[sec-reserved-without-grammar]]
+===== Reserved Words Without Grammar
+
+Nine of the reserved words define no syntax in this version of the language: `await`, `class`, `export`, `extends`, `finally`, `interface`, `record`, `where` and `yield`.  They are reserved so that a future revision can define them without invalidating existing code.  Using one as an identifier is rejected on the same terms as any other reserved word, and using one where a statement or expression is expected is a syntax error.
 
 [%breakable]
 [[sec-statements-and-blocks]]
@@ -122,14 +128,14 @@ a = f;
 (g).x = 1     -- two statements
 ----
 
-A self reference (<<sec-self-referencing>>) is exempt from the continuation rule when it opens a line: a `&` that begins a line and is followed immediately by an identifier terminates the preceding statement.  On the same line the character reads as the bitwise AND operator, so two such statements written on one line require a semicolon between them:
+A self reference (<<sec-self-referencing>>) is exempt from the continuation rule regardless of its position: an `&` followed immediately by an identifier begins contextual syntax and therefore terminates the preceding expression.  Insert whitespace after `&` when using bitwise AND with an identifier.  No semicolon is required between adjacent self-referencing statements on one line:
 
 [source,tiri]
 ----
 &total = Value
 &count++            -- a second statement
 
-&reset(); &count++  -- one line, so the semicolon is required
+&reset() &count++   -- two statements on one line
 ----
 
 ==== Blocks
@@ -253,7 +259,7 @@ Long strings are delimited by `[[` and `]]` and can span multiple lines.  The le
 
 [source,tiri]
 ----
-msg = [[
+text = [[
 This string spans
 multiple lines verbatim.
 ]]

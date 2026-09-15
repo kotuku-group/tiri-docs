@@ -42,7 +42,7 @@ When an `except` clause declares a variable, the runtime constructs a table desc
 
 |`code`
 |integer
-|The `ERR` code.  For a runtime fault this is a code describing the fault, chosen by the engine.  For a `raise` whose first operand is not a number it is `ERR_Exception`.
+|The `ERR` code.  For a runtime fault this is a code describing the fault, chosen by the engine.  Codes below the exception threshold are normalised to `ERR_Exception`, so the field is always at or above the threshold.  For a `raise` whose first operand is not a number it is `ERR_Exception`.
 
 |`message`
 |string
@@ -93,7 +93,7 @@ Safe codes (below threshold):: `Okay`, `False`, `LimitedSuccess`, `Cancelled`, `
 
 Exception codes (at or above threshold):: All other error codes.  These are treated as real errors by the `check` statement and by API call interception within `checkall` blocks.
 
-The `raise` statement bypasses this threshold and raises an exception for any error code, including safe codes.
+The `raise` statement bypasses this threshold and raises an exception for any error code, including safe codes.  A safe code carries no identity through the exception: the code is normalised to `ERR_Exception` before handler selection, and the default message is the description of the code that was raised.
 
 ==== Unhandled Exceptions
 
@@ -302,7 +302,7 @@ An exception raised directly in the body of a `try<trace>` block carries a trace
 
 [[sec-filtered-exceptions]]
 === Filtered Exceptions
-indexterm:[exceptions, filtered] The `when` clause restricts an `except` handler to specific `ERR` codes.  Each `when` clause accepts up to 4 comma-separated error code expressions.  The codes must be compile-time numeric constants.
+indexterm:[exceptions, filtered] The `when` clause restricts an `except` handler to specific `ERR` codes.  Each `when` clause accepts up to 4 comma-separated error code expressions; declaring a fifth is a parse error.  The codes must be compile-time numeric constants.
 
 [source,tiri]
 ----
@@ -440,7 +440,7 @@ indexterm:[exceptions, raising] `raise` raises an exception unconditionally.  It
 
 Raises an exception with the specified `ERR` code.  Unlike `check`, all error codes trigger an exception, including safe codes.  The error code is also propagated to the Script object's `Error` field for reporting back to C/C++ client code.
 
-`Code` is the first operand.  When its value is a number it becomes the exception's `code`; a value of any other type is discarded and the exception is raised with `ERR_Exception`.  `Message` is the second operand.  When its value is a string it becomes the exception's `message`; when it is omitted, or its value is not a string, the default description for the error code is used.  Both operands are evaluated left to right, and the exception table's `source` and `line` fields identify the line of the `raise` keyword.
+`Code` is the first operand.  When its value is a number at or above the exception threshold it becomes the exception's `code`; a number below the threshold, and a value of any other type, is discarded and the exception is raised with `ERR_Exception`.  `Message` is the second operand.  When its value is a string it becomes the exception's `message`; when it is omitted, or its value is not a string, the default description for the error code is used.  Both operands are evaluated left to right, and the exception table's `source` and `line` fields identify the line of the `raise` keyword.
 
 [source,tiri]
 ----

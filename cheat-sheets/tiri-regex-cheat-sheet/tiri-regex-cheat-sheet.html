@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Two-page Tiri regular expressions quick reference">
+<title>Tiri Regular Expressions Cheat Sheet</title>
+<link rel="stylesheet" href="print.css">
+</head>
+<body>
+<section class="sheet">
+   <header class="page-header">
+      <span class="title">Tiri Regular Expressions Cheat Sheet</span>
+      <span class="brand">Pattern syntax &amp; core API <img src="tiri.svg" alt="Tiri"></span>
+   </header>
+
+   <main class="columns">
+      <div class="column">
+         <section class="section">
+            <h2>Create patterns</h2>
+            <pre>digits = r'\d+'                                        <span class="comment">-- preferred simple format</span>
+words  = regex.new([[\p{L}+]], regex.ICASE)            <span class="comment">-- format for additional options</span>
+name   = 'report[1].txt'
+exact  = regex.new('^' .. regex.escape(name) .. '$')   <span class="comment">-- make user strings safe</span>
+exact.test('report[1].txt')                            <span class="comment">-- true</span></pre>
+            <p><code>r'\d+'</code> is equivalent to <code>regex.new([[\d+]])</code>.  In an ordinary quoted string,
+               double regex backslashes: <code>regex.new('\\d+')</code>.</p>
+            <p class="warning">Invalid patterns raise <code>ERR_Syntax</code>.  Wrap dynamic or user-supplied patterns
+               in <code>try</code>.</p>
+         </section>
+
+         <section class="section">
+            <h2>Choose an interface</h2>
+            <table class="api compact">
+               <thead><tr><th>Interface</th><th>Result / purpose</th></tr></thead>
+               <tbody>
+                  <tr><td><code>regex.new(pattern, [flags])</code></td><td>Compile a dynamic pattern</td></tr>
+                  <tr><td><code>regex.escape(text)</code></td><td>Quote arbitrary text for a pattern</td></tr>
+                  <tr><td><code>rx.test(text, [flags])</code></td><td>Boolean: any match exists</td></tr>
+                  <tr><td><code>rx.findFirst(text, [offset], [flags])</code></td><td>First start, exclusive stop, captures</td></tr>
+                  <tr><td><code>rx.findAll(text, [offset], [flags])</code></td><td>Iterator of positions and captures</td></tr>
+                  <tr><td><code>rx.extract(text, [offset], [flags])</code></td><td>First match's captures as results</td></tr>
+                  <tr><td><code>rx.match(text, [flags])</code></td><td>Whole-string match array, or <code>nil</code></td></tr>
+                  <tr><td><code>rx.search(text, [flags])</code></td><td>Array of all match arrays, or <code>nil</code></td></tr>
+                  <tr><td><code>rx.replace(text, replacement, [flags])</code></td><td>Substituted string</td></tr>
+                  <tr><td><code>rx.split(text, [flags])</code></td><td>Array of parts between matches</td></tr>
+               </tbody>
+            </table>
+         </section>
+
+         <section class="section">
+            <h2>Method examples</h2>
+            <pre>has_num = r'\d+'.test('Order 42')             <span class="comment">-- true</span>
+
+text = 'Order 42 ready'
+start, stop = r'\d+'.findFirst(text)           <span class="comment">-- 6, 8</span>
+number = text.sub(start, stop)                 <span class="comment">-- '42'</span>
+
+for start, stop in r'\d+'.findAll('x=10, y=20') do
+   print(f'[{start}..{stop})')
+end
+
+name, id = r'(\w+)-(\d+)'.extract('item-42')   <span class="comment">-- 'item', '42'</span>
+date = r'(\d{4})-(\d{2})-(\d{2})'.match('2026-09-10')
+year = date?[1]                               <span class="comment">-- '2026'</span>
+all = r'&lt;(\w+)&gt;'.search('&lt;red&gt; &lt;blue&gt;')
+first = all?[0][0]                            <span class="comment">-- '&lt;red&gt;'</span></pre>
+            <p class="note"><code>findFirst()</code> and <code>findAll()</code> return zero-based byte positions as
+               half-open spans <code>[start, stop)</code>.  Capture arrays are also zero-based.</p>
+         </section>
+
+         <section class="section">
+            <h2>Return conventions</h2>
+            <table class="api narrow-first compact">
+               <tbody>
+                  <tr><td><code>findFirst()</code> / <code>findAll()</code></td><td>Capture array excludes the full match; <code>nil</code> when no groups exist</td></tr>
+                  <tr><td><code>extract()</code></td><td>No results when unmatched; optional unmatched captures are empty strings</td></tr>
+                  <tr><td><code>match()</code> / <code>search()</code></td><td>Index 0 is the full match; later indices are captures; unmatched calls return <code>nil</code></td></tr>
+               </tbody>
+            </table>
+         </section>
+      </div>
+
+      <div class="column">
+         <section class="section">
+            <h2>Characters &amp; escaping</h2>
+            <table class="narrow-first compact">
+               <thead><tr><th>Pattern</th><th>Meaning</th></tr></thead>
+               <tbody>
+                  <tr><td><code>abc</code></td><td>Literal characters</td></tr>
+                  <tr><td><code>.</code></td><td>Any code point except a line terminator; <code>DOT_ALL</code> includes them</td></tr>
+                  <tr><td><code>\t \n \v \f \r</code></td><td>Tab, line feed, vertical tab, form feed, carriage return</td></tr>
+                  <tr><td><code>\0</code></td><td>NULL (U+0000); other octal escapes are unsupported</td></tr>
+                  <tr><td><code>\cX</code></td><td>Control character; <code>X</code> is A–Z or a–z</td></tr>
+                  <tr><td><code>\xHH</code></td><td>Two-digit hexadecimal character</td></tr>
+                  <tr><td><code>\uHHHH</code></td><td>Four-digit Unicode code point</td></tr>
+                  <tr><td><code>\u{H...}</code></td><td>Unicode code point up to U+10FFFF</td></tr>
+                  <tr><td><code>\.</code> <code>\*</code> <code>\+</code></td><td>Escaped metacharacter, matched literally</td></tr>
+               </tbody>
+            </table>
+            <p class="note">Outside a class, escape <code>\ ^ $ . | ? * + ( ) [ ] { }</code> when literal.
+               <code>regex.escape()</code> quotes those characters and <code>-</code> in dynamic text.</p>
+         </section>
+
+         <section class="section">
+            <h2>Character classes</h2>
+            <table class="narrow-first compact">
+               <thead><tr><th>Pattern</th><th>Meaning</th></tr></thead>
+               <tbody>
+                  <tr><td><code>[abc]</code></td><td>One of <code>a</code>, <code>b</code> or <code>c</code></td></tr>
+                  <tr><td><code>[^abc]</code></td><td>Any code point except those listed</td></tr>
+                  <tr><td><code>[a-z]</code></td><td>Inclusive code-point range</td></tr>
+                  <tr><td><code>[-/] [\-\/]</code></td><td>Literal hyphen or slash</td></tr>
+                  <tr><td><code>[]</code> / <code>[^]</code></td><td>Empty set / any code point including line terminators</td></tr>
+                  <tr><td><code>\d</code> / <code>\D</code></td><td>ASCII digit / non-digit</td></tr>
+                  <tr><td><code>\s</code> / <code>\S</code></td><td>Unicode whitespace / non-whitespace</td></tr>
+                  <tr><td><code>\w</code> / <code>\W</code></td><td>ASCII letter, digit or underscore / complement</td></tr>
+                  <tr><td><code>\p{...}</code> / <code>\P{...}</code></td><td>Unicode property / property complement</td></tr>
+               </tbody>
+            </table>
+            <p class="note">A leading <code>^</code> negates a class; elsewhere it is literal.  Escape <code>]</code>
+               and ambiguous <code>-</code>.  Most other metacharacters lose their special meaning inside a class.</p>
+         </section>
+
+         <section class="section">
+            <h2>Character-class set operations</h2>
+            <table class="api compact">
+               <tbody>
+                  <tr><td><code>[\p{sc=Latin}&amp;&amp;\p{Ll}]</code></td><td>Intersection: lowercase Latin</td></tr>
+                  <tr><td><code>[[A-Za-z]--[AEIOUaeiou]]</code></td><td>Subtraction: ASCII consonants</td></tr>
+                  <tr><td><code>[a-z\q{ch|sh|th}]</code></td><td>Characters or listed strings; longest wins</td></tr>
+                  <tr><td><code>[\p{sc=Latin}--[a-z]]</code></td><td>Nested class as an operand</td></tr>
+               </tbody>
+            </table>
+            <p class="note">Use one operator type at each nesting level.  String properties and <code>\q{...}</code>
+               sequences cannot be complemented.  Escape doubled punctuation used as operators or reserved syntax.</p>
+         </section>
+
+         <section class="section">
+            <h2>Quantifiers</h2>
+            <table class="three-col compact">
+               <thead><tr><th>Greedy</th><th>Lazy</th><th>Repetitions</th></tr></thead>
+               <tbody>
+                  <tr><td><code>*</code></td><td><code>*?</code></td><td>Zero or more</td></tr>
+                  <tr><td><code>+</code></td><td><code>+?</code></td><td>One or more</td></tr>
+                  <tr><td><code>?</code></td><td><code>??</code></td><td>Zero or one</td></tr>
+                  <tr><td><code>{n}</code></td><td>—</td><td>Exactly <code>n</code></td></tr>
+                  <tr><td><code>{n,}</code></td><td><code>{n,}?</code></td><td>At least <code>n</code></td></tr>
+                  <tr><td><code>{n,m}</code></td><td><code>{n,m}?</code></td><td><code>n</code> to <code>m</code>, inclusive</td></tr>
+               </tbody>
+            </table>
+            <p class="note">Greedy forms consume as much as possible while still succeeding; lazy forms consume as
+               little as possible.  <code>&lt;.*&gt;</code> spans to the last <code>&gt;</code>; <code>&lt;.*?&gt;</code> stops at the first.</p>
+         </section>
+      </div>
+   </main>
+</section>
+
+<section class="sheet">
+   <header class="page-header">
+      <span class="title">Pattern Language</span>
+      <span class="brand">Tiri Regular Expressions <img src="tiri.svg" alt="Tiri"></span>
+   </header>
+
+   <main class="columns">
+      <div class="column">
+         <section class="section">
+            <h2>Alternatives, groups &amp; backreferences</h2>
+            <table class="narrow-first compact">
+               <tbody>
+                  <tr><td><code>cat|dog</code></td><td>First successful alternative, left to right</td></tr>
+                  <tr><td><code>(...)</code></td><td>Capturing group; numbered from 1</td></tr>
+                  <tr><td><code>(?:...)</code></td><td>Non-capturing group</td></tr>
+                  <tr><td><code>(?&lt;name&gt;...)</code></td><td>Named capture; also receives a number</td></tr>
+                  <tr><td><code>\1</code> <code>\2</code></td><td>Text captured by a numbered group</td></tr>
+                  <tr><td><code>\k&lt;name&gt;</code></td><td>Text captured by a named group</td></tr>
+               </tbody>
+            </table>
+            <p class="note">Use <code>(?:...)</code> when grouping only controls precedence or repetition.  A quantified
+               capture retains its final iteration; a backreference to a non-participating group matches empty text.</p>
+         </section>
+
+         <section class="section">
+            <h2>Anchors &amp; zero-width assertions</h2>
+            <table class="narrow-first compact">
+               <tbody>
+                  <tr><td><code>^</code></td><td>Start of text; line start with <code>MULTILINE</code></td></tr>
+                  <tr><td><code>$</code></td><td>End of text; line end with <code>MULTILINE</code></td></tr>
+                  <tr><td><code>\b</code> / <code>\B</code></td><td>ASCII word boundary / non-boundary</td></tr>
+                  <tr><td><code>(?=...)</code></td><td>Positive lookahead</td></tr>
+                  <tr><td><code>(?!...)</code></td><td>Negative lookahead</td></tr>
+                  <tr><td><code>(?&lt;=...)</code></td><td>Positive lookbehind</td></tr>
+                  <tr><td><code>(?&lt;!...)</code></td><td>Negative lookbehind</td></tr>
+               </tbody>
+            </table>
+            <pre>whole_word = r'\bcat\b'              <span class="comment">-- not 'concatenate'</span>
+bare_amp = r'&amp;(?!amp;|lt;|gt;|#)'
+price = r'(?&lt;=£)\d+(?:\.\d{2})?'</pre>
+            <p class="note">Assertions inspect context without consuming text.  Inside a class, <code>\b</code> is BEL
+               (U+0008), not a boundary; <code>\B</code> is invalid.</p>
+         </section>
+
+         <section class="section">
+            <h2>Unicode properties</h2>
+            <div class="split-grid">
+               <table class="narrow-first compact">
+                  <tbody>
+                     <tr><td><code>\p{L}</code></td><td>Any letter</td></tr>
+                     <tr><td><code>\p{Lu}</code> / <code>\p{Ll}</code></td><td>Upper-/lowercase letter</td></tr>
+                     <tr><td><code>\p{N}</code> / <code>\p{Nd}</code></td><td>Any number / decimal digit</td></tr>
+                     <tr><td><code>\p{P}</code> / <code>\p{S}</code></td><td>Punctuation / symbol</td></tr>
+                     <tr><td><code>\p{Z}</code> / <code>\p{C}</code></td><td>Separator / other</td></tr>
+                  </tbody>
+               </table>
+               <table class="narrow-first compact">
+                  <tbody>
+                     <tr><td><code>\p{sc=Greek}</code></td><td>Greek script</td></tr>
+                     <tr><td><code>\p{scx=Latin}</code></td><td>Latin script extension</td></tr>
+                     <tr><td><code>\p{White_Space}</code></td><td>Unicode whitespace</td></tr>
+                     <tr><td><code>\p{Emoji}</code></td><td>Emoji property</td></tr>
+                  </tbody>
+               </table>
+            </div>
+            <p class="note">Identifier: <code>\p{ID_Start}\p{ID_Continue}*</code>.  Long names work too:
+               <code>\p{Script=Latin}</code>.  <code>\w</code> remains ASCII-oriented; use properties for international text.</p>
+         </section>
+
+         <section class="section">
+            <h2>Compilation &amp; inline flags</h2>
+            <table class="api compact">
+               <tbody>
+                  <tr><td><code>regex.ICASE</code> / <code>(?i:...)</code></td><td>Unicode case-insensitive matching</td></tr>
+                  <tr><td><code>regex.MULTILINE</code> / <code>(?m:...)</code></td><td><code>^</code> and <code>$</code> recognise line boundaries</td></tr>
+                  <tr><td><code>regex.DOT_ALL</code> / <code>(?s:...)</code></td><td><code>.</code> includes line terminators</td></tr>
+                  <tr><td><code>(?ims:...)</code> / <code>(?i-s:...)</code></td><td>Enable several / enable <code>i</code>, disable <code>s</code></td></tr>
+               </tbody>
+            </table>
+            <pre>line = regex.new([[^error:]], regex.ICASE | regex.MULTILINE)
+local_case = r'ID-(?i:[a-f0-9]{8})'</pre>
+         </section>
+
+         <section class="section">
+            <h2>Pattern object properties</h2>
+            <p><code>rx.pattern</code> original pattern · <code>rx.flags</code> compilation mask ·
+               <code>rx.error</code> always <code>nil</code> for script-accessible objects.</p>
+         </section>
+      </div>
+
+      <div class="column">
+         <section class="section">
+            <h2>Match &amp; replacement flags</h2>
+            <table class="api compact">
+               <tbody>
+                  <tr><td><code>regex.CONTINUOUS</code></td><td>Match must begin at text position 0</td></tr>
+                  <tr><td><code>regex.NOT_NULL</code></td><td>Reject zero-length matches</td></tr>
+                  <tr><td><code>regex.NOT_BEGIN_OF_LINE</code> / <code>NOT_END_OF_LINE</code></td><td>Suppress edge line boundaries</td></tr>
+                  <tr><td><code>regex.NOT_BEGIN_OF_WORD</code> / <code>NOT_END_OF_WORD</code></td><td>Suppress edge word boundaries</td></tr>
+                  <tr><td><code>regex.PREV_AVAILABLE</code></td><td>A preceding character is available to assertions</td></tr>
+                  <tr><td><code>regex.REPLACE_NO_COPY</code></td><td>Emit replacements without unmatched text</td></tr>
+                  <tr><td><code>regex.REPLACE_FIRST_ONLY</code></td><td>Replace only the first match</td></tr>
+               </tbody>
+            </table>
+            <p class="note">Pass these to an operation, not <code>regex.new()</code>.  Do not mix compilation and match
+               flags in one mask.</p>
+         </section>
+
+         <section class="section">
+            <h2>Replacement placeholders</h2>
+            <table class="narrow-first compact">
+               <tbody>
+                  <tr><td><code>$0</code> or <code>$&amp;</code></td><td>Full match</td></tr>
+                  <tr><td><code>$1</code>, <code>$2</code>, …</td><td>Numbered capture</td></tr>
+                  <tr><td><code>$&lt;name&gt;</code></td><td>Named capture</td></tr>
+                  <tr><td><code>$`</code> / <code>$'</code></td><td>Text before / after the match</td></tr>
+                  <tr><td><code>$$</code></td><td>Literal dollar sign</td></tr>
+               </tbody>
+            </table>
+            <pre>phone = r'(?&lt;area&gt;\d{3})-(?&lt;local&gt;\d{3})-(?&lt;line&gt;\d{4})'
+phone.replace('555-123-4567', '($&lt;area&gt;) $&lt;local&gt;-$&lt;line&gt;')
+<span class="comment">-- '(555) 123-4567'</span>
+r'\d+'.replace('1 2 3', 'X', regex.REPLACE_FIRST_ONLY) <span class="comment">-- 'X 2 3'</span>
+r',\s*'.split('r, g,  b')                             <span class="comment">-- {'r','g','b'}</span></pre>
+         </section>
+
+         <section class="section">
+            <h2>Common recipes</h2>
+            <table class="api compact">
+               <thead><tr><th>Pattern / operation</th><th>Purpose</th></tr></thead>
+               <tbody>
+                  <tr><td><code>^[+\-]?\d+$</code></td><td>Integer shape</td></tr>
+                  <tr><td><code>^[+\-]?\d+(?:\.\d+)?$</code></td><td>Decimal shape</td></tr>
+                  <tr><td><code>^\d{4}-\d{2}-\d{2}$</code></td><td>ISO-style date shape</td></tr>
+                  <tr><td><code>^\p{ID_Start}\p{ID_Continue}*$</code></td><td>Unicode identifier</td></tr>
+                  <tr><td><code>r'^\s+|\s+$'.replace(text, '')</code></td><td>Trim outer whitespace</td></tr>
+                  <tr><td><code>r'\s+'.replace(text, ' ')</code></td><td>Collapse whitespace</td></tr>
+                  <tr><td><code>\.([A-Za-z0-9]+)$</code></td><td>Capture a file extension</td></tr>
+                  <tr><td><code>&lt;([^&gt;]+)&gt;(.*?)&lt;/\1&gt;</code></td><td>Text inside simple paired tags</td></tr>
+               </tbody>
+            </table>
+            <p class="note">Shape checks do not validate domain semantics; the date pattern accepts impossible dates.</p>
+         </section>
+
+         <section class="section">
+            <h2>Boundaries &amp; performance</h2>
+            <ul>
+               <li>Unsupported: <code>\Q...\E</code>, possessive quantifiers, recursion, conditionals, inline comments,
+                  POSIX classes, .NET balancing groups and octal escapes other than <code>\0</code>.</li>
+               <li>Compile once and reuse.  A deferred expression <code>&lt;{ regex.new(...) }&gt;</code> compiles on first use.</li>
+               <li>Use <code>test()</code> for presence and <code>findFirst()</code> for positions; avoid collecting results unnecessarily.</li>
+               <li>Anchor validation patterns and prefer specific classes over broad <code>.*</code> searches.</li>
+               <li>Avoid ambiguous nested quantifiers such as <code>(a+)+</code>; they can cause catastrophic backtracking.</li>
+            </ul>
+         </section>
+      </div>
+   </main>
+</section>
+
+<script>
+if (new URLSearchParams(location.search).has('portrait')) document.body.classList.add('portrait');
+window.addEventListener('load', () => {
+   document.querySelectorAll('.sheet').forEach((sheet) => {
+      sheet.dataset.overflow = sheet.scrollHeight > sheet.clientHeight ? 'true' : 'false';
+   });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Three-page Tiri language syntax quick reference">
+<title>Tiri Syntax Cheat Sheet</title>
+<link rel="stylesheet" href="print.css">
+</head>
+<body>
+<section class="sheet">
+
+<header class="page-header">
+   <span class="title">Tiri Syntax Cheat Sheet</span>
+   <span class="brand">Sheet 1 of 3 <img src="tiri.svg" alt="Tiri"></span>
+</header>
+
+<main class="columns">
+
+<h2>Core rules</h2>
+<table>
+<tbody>
+<tr><td>Locals by default</td><td>count = 0 · function f()…end</td></tr>
+<tr><td>Equality / inequality</td><td>a is b · a is not b · a != b</td></tr>
+<tr><td>Falsey values</td><td>nil, false (0, '', {} are true)</td></tr>
+<tr><td>Statement separator</td><td>Newline, or <code>;</code> to disambiguate</td></tr>
+<tr><td>Comments</td><td>-- line · --[[ long --]]</td></tr>
+<tr><td>Indentation</td><td>Three spaces</td></tr>
+</tbody>
+</table>
+
+<pre>name = 'Ada'                           <span class="comment">-- implicit local</span>
+local count:num = 0           <span class="comment">-- explicit local and type</span>
+global app_name = 'Demo'                       <span class="comment">-- global</span>
+MAX_RETRIES &lt;const&gt; = 3                <span class="comment">-- local constant</span>
+count += 1                       <span class="comment">-- also -= *= /= %= ..=</span>
+count++                         <span class="comment">-- statement only; no --</span>
+a, b = b, a                <span class="comment">-- multiple assignment / swap</span>
+_, value = getResult()     <span class="comment">-- _ discards, cannot be read</span></pre>
+<p>The first non-<code>nil</code> assignment fixes a local's type. Assigning <code>nil</code> clears the value, not the type. Use <code>:any</code> only for genuinely unrelated types.</p>
+
+<h2>Literals and strings</h2>
+<pre>n = 42; hex = 0xff; bits = 0b1010; real = 1.5e-2
+ok = true; missing = nil
+text = 'single quotes are preferred'
+multiline = [[verbatim text
+over several lines]]
+greeting = f'Hello, {name}!  2 + 3 = {2 + 3}'
+braces = f'Use &#123;&#123; and }} for literal braces'
+digits = r'\d+'                <span class="comment">-- raw regular expression</span></pre>
+
+<h2>Tables, arrays and access</h2>
+<pre>user  = { name = 'Ada', ['role-name'] = 'admin' }
+items = { 'zero', 'one', 'two' }             <span class="comment">-- sequence</span>
+scores = array&lt;int&gt; { 10, 20, 30 }        <span class="comment">-- typed array</span>
+buffer = array&lt;byte, 1024&gt;                <span class="comment">-- sized array</span></pre>
+<pre>user.name = 'Grace'
+first = items[0]                           -- zero-based<br>count = #scores<br>user.role = nil                       -- removes a field</pre>
+
+<pre>for k, v in user do print(k, v) end
+for idx, v in scores do print(idx, value) end
+for _, value in scores do print(value) end
+for value in values(scores) do print(value) end</pre>
+
+<h2>Conditions and loops</h2>
+<pre>if score &gt;= 90 then
+   grade = 'A'
+elseif score &gt;= 75 then
+   grade = 'B'
+else
+   grade = 'C'
+end</pre>
+<pre>while ready is false do poll() end
+repeat
+   line = readLine()
+until line is 'quit'</pre>
+<pre>for i in {0 to 5} do print(i) end                <span class="comment">-- 0..4</span>
+for i in {1 into 5} do print(i) end              <span class="comment">-- 1..5</span>
+for i in {0 to 1 by 0.25} do print(i) end
+for {0 to 3} do retry() end               <span class="comment">-- no variable</span></pre>
+<pre>for key, value in collection do
+   if value is nil then continue end
+   if key is 'stop' then break end
+end</pre>
+
+<h2>Functions</h2>
+<pre>function clamp(Value:num, Low:num, High:num):num
+   if Value &lt; Low then return Low end
+   if Value &gt; High then return High end
+   return Value
+end</pre>
+<pre>function splitPair(Value:str):&lt;str, str&gt;
+   return Value.sub(0, 1), Value.sub(1)
+end</pre>
+<pre>left, right = splitPair('AB')
+double = x =&gt; x * 2
+add = (a, b) =&gt; a + b
+work = x =&gt; do
+   result = prepare(x)
+   return process(result)
+end</pre>
+<p>Functions are closures. A call in the final position of an assignment, argument list or <code>return</code> forwards all its results; elsewhere it contributes one.</p>
+<pre>function sum(...):num
+   total = 0
+   for _, value in {...} do total += value end
+   return total
+end</pre>
+
+<h2>Operators and compact decisions</h2>
+<table>
+<tbody>
+<tr><td>+ - * / % **</td><td>Arithmetic; <code>**</code> right-associative</td></tr>
+<tr><td>a .. b · #value</td><td>Concatenation (numbers coerce) / length</td></tr>
+<tr><td>is · is not · != · &lt; &lt;= &gt; &gt;=</td><td>Comparison; <code>0 &lt;= x &lt; 10</code> chains</td></tr>
+<tr><td>not · and · or</td><td>Logic, standard falsiness</td></tr>
+<tr><td>~ &amp; | ^ &lt;&lt; &gt;&gt;</td><td>Bitwise, C-style</td></tr>
+<tr><td>flags has MASK</td><td>True when <code>(flags &amp; MASK) != 0</code></td></tr>
+<tr><td>value in container</td><td>Range, substring, array value, table key</td></tr>
+<tr><td>cond ? yes : no</td><td>Ternary, standard falsiness</td></tr>
+<tr><td>value ?? yes : no</td><td>Extended ternary; <code>0 '' {}</code> also falsey</td></tr>
+<tr><td>a ≈ b</td><td>Approximate; tolerance <code>1e-5</code></td></tr>
+</tbody>
+</table>
+
+<h2>Nil safety and defaults</h2>
+<p><code>??</code>, <code>??=</code> and <code>?!</code> use <strong>extended falsiness</strong> (<code>nil false 0 ''</code> and empty collections). Safe navigation and <code>?=</code> test <strong>only <code>nil</code></strong>.</p>
+<pre>label = supplied ?? 'Untitled'              <span class="comment">-- any empty</span>
+timeout ?= 30                           <span class="comment">-- only when nil</span>
+label ??= 'Untitled'                       <span class="comment">-- when empty</span>
+supplied ?! return ERR_InvalidInput             <span class="comment">-- guard</span>
+if supplied?? then use(supplied) end     <span class="comment">-- postfix test</span></pre>
+<pre>city = user?.profile?.address?.city
+item = data?[index]                    <span class="comment">-- nil-safe index</span>
+name = user?.name ?? 'Guest'
+user?.stats?.count += 1               <span class="comment">-- RHS skipped too</span></pre>
+
+<h2>Ranges, slicing and membership</h2>
+<pre>exclusive = {0 to 5}                    <span class="comment">-- stop excluded</span>
+inclusive = {0 into 5}                  <span class="comment">-- stop included</span>
+stepped   = {0 to 10 by 2}</pre>
+<pre>word    = 'Hello, World!'[{7 to 12}]          <span class="comment">-- 'World'</span>
+tail    = items[{-3 into -1}]              <span class="comment">-- last three</span>
+reverse = items[{-1 into 0}]                 <span class="comment">-- reversed</span>
+inside  = value in {0 to 10}</pre>
+<p>Ranges iterate and slice strings, sequence tables and arrays. Negative indices count from the end (<code>-1</code> is last).</p>
+</main>
+</section>
+
+<section class="sheet">
+<header class="page-header">
+   <span class="title">Tiri Syntax Cheat Sheet</span>
+   <span class="brand">Sheet 2 of 3 <img src="tiri.svg" alt="Tiri"></span>
+</header>
+<main class="columns">
+
+<h2>Types and contracts</h2>
+<pre>local total:num = 0
+local title:str = 'Report'
+local enabled:bool = true
+local options:table = {}
+local callback:func
+local rows:array&lt;table&gt; = array&lt;table&gt; {}
+local variants:any = nil</pre>
+<pre>function parse(Text:str!):&lt;num, str!&gt;   <span class="comment">-- ! rejects nil</span>
+   return #Text, Text
+end</pre>
+<pre>if value is &lt;num&gt; then print('number') end
+if value != &lt;array int&gt; then raise 'Expected ints' end</pre>
+<p>Native annotations: <code>any nil bool num str table func obj range userdata struct&lt;Name&gt; array&lt;T&gt;</code>. Array element storage: <code>byte int int64 float double str table obj struct&lt;Name&gt;</code>, nested <code>array&lt;…&gt;</code> or <code>any</code> — <code>array&lt;num&gt;</code> is invalid.</p>
+
+<h2>Error handling</h2>
+<pre>try
+   _, data = check file.acRead(buffer)
+except e when ERR_NotFound, ERR_Read
+   print(f'Read failed: {e.message}')
+except e
+   print(f'Error {e.code}: {e.message}')
+   raise                                      <span class="comment">-- rethrow</span>
+success
+   consume(data)
+end</pre>
+<pre>raise 'Invalid input'                   <span class="comment">-- ERR_Exception</span>
+raise ERR_Args
+raise ERR_Args, 'Expected a path'
+value = ok ? result : raise(ERR_Failed, 'No result')</pre>
+<p><code>try</code> catches exceptions; it does not check returned <code>ERR</code> values. Use <code>check Expression</code>, or <code>checkall</code> across a block of direct native calls.</p>
+<pre>try
+   checkall
+      file.acRead(buffer)
+      task.acSetKey('Status', 'ready')
+   end
+except e
+   print(e.message)
+end</pre>
+
+<h2>Deterministic cleanup</h2>
+<pre>handle &lt;close&gt; = acquire()            <span class="comment">-- __close on exit</span></pre>
+<pre>defer
+   releaseLock()
+end</pre>
+<pre>defer(saved_path)                        <span class="comment">-- snapshot now</span>
+   removeTemporary(saved_path)
+end(path)</pre>
+<p>Cleanup runs on normal exit, <code>return</code>, <code>break</code>, <code>continue</code> and error unwinding. In one scope <code>&lt;close&gt;</code> handlers run before <code>defer</code> blocks; each group last-in, first-out.</p>
+
+<h2>Pattern selection</h2>
+<pre>label = choose status from
+   200 -&gt; 'OK'                                <span class="comment">-- literal</span>
+   404 -&gt; 'Not found'
+   &lt; 500 -&gt; 'Client error'                 <span class="comment">-- relational</span>
+   &lt;num&gt; when status &gt;= 500 -&gt; 'Server error'
+   else -&gt; 'Unknown'
+end</pre>
+<pre>direction = choose (dx, dy) from
+   (0, 0) -&gt; 'stationary'                       <span class="comment">-- tuple</span>
+   (0, _) -&gt; 'vertical'                      <span class="comment">-- wildcard</span>
+   (_, 0) -&gt; 'horizontal'
+   else -&gt; 'diagonal'
+end</pre>
+<pre>kind = choose event from
+   { type = 'click', button = 'left' } -&gt; 'left click'
+   { type = 'click' } -&gt; 'other click'     <span class="comment">-- open table</span>
+   {} -&gt; 'empty table'
+   else -&gt; 'other'
+end</pre>
+<p><code>choose</code> evaluates its subject once and takes the first matching arm; returns <code>nil</code> with no match and no <code>else</code>. Also a statement: <code>'save' -&gt; save()</code>.</p>
+
+<h2>Result selection and pipelines</h2>
+<pre>_, content, _ = file.acRead()             <span class="comment">-- by position</span>
+content = [_*_]file.acRead()            <span class="comment">-- keep 2nd only</span>
+tail = [_*]getValues()                     <span class="comment">-- drop first</span></pre>
+<pre>result  = input |&gt; normalise() |&gt; validate()
+maximum = getBounds() |&gt; math.max()       <span class="comment">-- all results</span>
+maximum = getMany() |2&gt; math.max()          <span class="comment">-- first two</span></pre>
+<p>In <code>[mask]call()</code>, <code>_</code> drops and <code>*</code> keeps; the final mask character governs all later positions. Pipelines insert forwarded values before arguments already written in the destination call.</p>
+
+<h2>Script organisation</h2>
+<pre>import 'json'                       <span class="comment">-- scripts:json.tiri</span>
+import './helpers'
+import 'json' as j</pre>
+<pre>namespace tools { version = '1.0' }
+tools.clean = value =&gt; value.trim()</pre>
+<pre>module display as mGfx               <span class="comment">-- defs + namespace</span>
+include 'xml', 'font'                <span class="comment">-- definitions only</span></pre>
+<pre>width = tonumber(arg('width', '800'))</pre>
+<p><code>import</code> and <code>module</code> are top-level declarations; CLI <code>key=value</code> arguments arrive as strings. <code>mSys</code> is the implicit Core module namespace. Wrap optional modules and their uses in <code>@if(exists='modules:name') … @end</code>.</p>
+
+<h2>Enums and structs</h2>
+<pre>enum STATUS {
+   READY = 0,
+   RUNNING,
+   STOPPED = 10,
+}
+<span class="comment">-- STATUS_READY, STATUS_RUNNING, STATUS_STOPPED</span></pre>
+<pre>struct Point
+   X: double
+   Y: double
+   Label: str
+end</pre>
+<pre>point = struct&lt;Point&gt; { X=10.5, Y=20, Label='origin' }
+empty = struct&lt;Point&gt;   <span class="comment">-- zero-initialised</span></pre>
+<p><code>enum</code> and <code>struct</code> declarations are top-level only; enum prefixes and members use upper-case identifiers. Struct fields use storage types such as <code>int</code>, <code>double</code>, <code>str</code>, <code>bool</code>, <code>type[N]</code>, <code>array&lt;type&gt;</code> and <code>struct&lt;Name&gt;</code>.</p>
+</main>
+</section>
+
+<section class="sheet">
+<header class="page-header">
+   <span class="title">Tiri Syntax Cheat Sheet</span>
+   <span class="brand">Sheet 3 of 3 <img src="tiri.svg" alt="Tiri"></span>
+</header>
+<main class="columns">
+
+<h2>Kōtuku objects and context</h2>
+<pre>file = obj&lt;File&gt; { path = 'data.txt', flags = FL_READ }
+dynamic = obj.new(class_name, { name = 'worker' })
+found = obj.find('main_window', 'Surface') <span class="comment">-- or nil</span></pre>
+<pre>err = object.acAction(arguments)          <span class="comment">-- actions ac…</span>
+err, value = object.mtMethod(arguments)   <span class="comment">-- methods mt…</span></pre>
+<pre>with object do                   <span class="comment">-- lock; always unlocks</span>
+   object.field = value
+end</pre>
+<pre>counter = entity { total = 0 }
+function counter.add(Amount:num):num
+   &amp;total += Amount                     <span class="comment">-- context field</span>
+   return &amp;total
+end</pre>
+<p>Most module calls and all object actions/methods return an <code>ERR</code> code first. Use <code>check</code>, <code>checkall</code>, a result mask or explicit handling — never discard it by accident.</p>
+
+<h2>Scoped context</h2>
+
+<pre>settings = { width = 640, height = 480 }
+using settings do
+   &amp;width = 800                        <span class="comment">-- settings.width</span>
+   print(&amp;height)
+end</pre>
+<p><code>using</code> temporarily makes a table the current context. <code>&amp;field</code> accesses a field on that context and <code>&amp;&amp;</code> returns the context table itself.</p>
+
+<h2>Operator precedence — high to low</h2>
+<table>
+<tbody>
+<tr><td>13</td><td>**</td></tr>
+<tr><td>12</td><td>unary - · not · # · unary ~</td></tr>
+<tr><td>11–9</td><td>* / % · + - · &lt;&lt; &gt;&gt;</td></tr>
+<tr><td>8–5</td><td>&amp; · .. · ^ · |</td></tr>
+<tr><td>4</td><td>is · is not · != · &lt; &gt; &lt;= &gt;= · in · has · ≈</td></tr>
+<tr><td>3–2</td><td>and · |&gt;</td></tr>
+<tr><td>1</td><td>or · ?? · ?! · ? : · ?? :</td></tr>
+</tbody>
+</table>
+<p>Postfix <code>++</code> and <code>??</code>, and suffix chains (<code>.field</code>, <code>[index]</code>, <code>()</code>, <code>?.</code>) bind tighter than binary operators. Assignment operators are statements and take no part in precedence. Parenthesise when intent is not obvious.</p>
+
+<h2>Lazy expressions and thunks</h2>
+<pre>lazy = &lt;{ expensiveCall() }&gt;            <span class="comment">-- inferred type</span>
+typed = &lt;str{ loadText() }&gt;             <span class="comment">-- explicit type</span>
+pending = isthunk(lazy)
+value = resolve(lazy)            <span class="comment">-- evaluate once, cache</span></pre>
+<pre>thunk fetchUser(Id:num):table
+   return database.query(Id)
+end
+user = fetchUser(42)                  <span class="comment">-- body stays lazy</span></pre>
+<p>A deferred expression resolves when its value is required. <code>thunk</code> declares a function whose call captures its arguments and returns a deferred, cached result.</p>
+
+<h2>Struct type</h2>
+<pre>point:struct&lt;Point&gt; = struct&lt;Point&gt; { X=10, Y=20 }
+dynamic = struct.new(name, fields)        <span class="comment">-- runtime name</span>
+copy = struct.clone(point)                   <span class="comment">-- deep copy</span>
+copy.X = 30                           <span class="comment">-- point.X stays 10</span></pre>
+<pre>point.X = 12                               <span class="comment">-- field write</span>
+field_count = #point
+has_x = 'X' in point                      <span class="comment">-- field exists</span>
+exact = point is &lt;struct Point&gt;           <span class="comment">-- exact layout</span>
+bytes = struct.size(point)                   <span class="comment">-- byte size</span>
+struct.copy(target, point)              <span class="comment">-- replace target</span></pre>
+<p>A struct may own its storage or be a live view of API or object-field memory.  A borrowed view and its embedded
+   sub-structures must not outlive their owner.  Clone a value when it needs an independent lifetime.</p>
+
+<h2>Annotations and preprocessing</h2>
+<pre>@Doc(text=[[Returns a display label.]])
+function label(Value:any):str
+   return tostring(Value)
+end</pre>
+<pre>@if(debug=true)
+   print('Verbose diagnostics enabled')
+@end</pre>
+<pre>@if(exists='modules:display')
+   module display as mGfx
+@end</pre>
+<p>Annotations apply to the function declaration immediately following them. <code>@if(condition=value) … @end</code> includes or excludes source at parse time; common conditions are <code>imported</code>, <code>debug</code>, <code>platform</code> and <code>exists</code>.</p>
+
+<p><strong>Extended Doc Options<br></strong>Inputs and results are matched by position, so keep their order aligned with the function signature.&nbsp; Use as many input and result annotations as there are parameters.</p>
+<pre>@Doc(text=[[
+@desc   Returns a display label.
+@input  Value to convert.
+@result Display label.
+@error Args: If the value is nil.
+]])
+function compactLabel(Value:any):str
+   if Value is nil then raise ERR_Args end
+   return tostring(Value)
+end</pre>
+<p><code>@input</code> and <code>@result</code>&nbsp;inherit signature type annotations, falling back to <code>any</code> when a type cannot be determined.</p>
+
+</main>
+</section>
+</body>
+</html>

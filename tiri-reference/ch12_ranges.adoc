@@ -334,7 +334,7 @@ Raises an error if `Object` is not a string, table, or array.
 
 indexterm:[ranges, integer requirement] Collections are indexed by whole element positions, so any range used as a collection index must have a `start`, `stop` and `step` that are all whole numbers within the signed 32-bit integer bounds.  A range that does not satisfy this raises an error rather than truncating its operands.
 
-The requirement applies to `range.slice()`, the `obj[{range}]` index syntax on strings, tables, and arrays, `arr.slice()`, `arr.fill()`, and `arr.find()`.
+The requirement applies to `range.slice()`, the `obj[{range}]` index syntax on strings, tables, and arrays, `arr.slice()`, `arr.fill()`, and `arr.indexOf()`.
 
 A range constructed from whole-valued doubles satisfies the requirement; only a fractional component or an out-of-bounds magnitude fails it.
 
@@ -504,7 +504,7 @@ Calls `Callback(Value, Ordinal)` for each value in the range.  Returns the origi
 [source,tiri]
 ----
 sum = 0
-{1 to 6}.each(Value => sum += Value)
+{1 to 6}.each(Value => do sum += Value end)
 -- sum is 15
 ----
 

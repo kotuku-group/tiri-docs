@@ -15,7 +15,7 @@ Control flow indicators that do not represent failures.  These codes do not trig
 Exception codes (9 and above)::
 Represent genuine errors.  When a Kōtuku API function returns one of these codes inside a `checkall` block, the error is automatically promoted to an exception.  The `check` statement also raises an exception for any code at or above the threshold.
 
-The threshold boundary is `ERR_Terminate` (value 9).
+The threshold boundary is marked with `ERR_ExceptionThreshold` (value 9).
 
 === Error Code Table
 
@@ -46,13 +46,13 @@ The following tables list the error codes exported to Tiri, with their constant 
 |===
 |Constant |Description
 
-|`ERR_Terminate` |Terminate processing.  Marks the exception threshold boundary.
+|`ERR_Terminate` (`ERR_ExceptionThreshold`) |Terminate processing.  Marks the exception threshold boundary.
 |`ERR_Failed` |General failure with no specific cause.
 |`ERR_Args` |Invalid arguments passed to a function.
 |`ERR_ParameterRequired` |A required parameter was not provided.
 |`ERR_ParameterUnknown` |The supplied parameter name is not recognised.
 |`ERR_DuplicateValue` |A duplicate value was provided where duplicates are not permitted.
-|`ERR_TimeOut` |The operation timed out before completion.
+|`ERR_Timeout` |The operation timed out before completion.
 |`ERR_Init` |Initialisation error.
 |`ERR_OutOfRange` |A value is outside the valid range.
 |`ERR_OutOfBounds` |Index or value is out of bounds.
@@ -86,7 +86,7 @@ The following tables list the error codes exported to Tiri, with their constant 
 |`ERR_InvalidPath` |The specified path is invalid.
 |`ERR_FileReadFlag` |The file was not initialised with the `FL::READ` flag set.
 |`ERR_FileWriteFlag` |The file was not initialised with the `FL::WRITE` flag set.
-|`ERR_MissingPath` |A required path was not provided.
+|`ERR_MissingPath` |The object is missing a required path reference.
 |`ERR_BufferOverflow` |A buffer overflow was detected.
 |`ERR_Seek` |A seek operation failed.
 |`ERR_FileExists` |The file already exists.
@@ -151,7 +151,7 @@ The following tables list the error codes exported to Tiri, with their constant 
 |`ERR_Exists` |The item already exists.
 |`ERR_InvalidObject` (`ERR_WrongObjectType`, `ERR_WrongClass`) |The object is invalid or of the wrong type.
 |`ERR_UseDerived` |A registered derived class should be used in place of the base class.  Not an error condition.
-|`ERR_AlreadyDefined` |The item has already been defined.
+|`ERR_AlreadyDefined` |An attempt was made to change a value that cannot be redefined.
 |`ERR_ImmutableField` |The field value is immutable and cannot be modified.
 |`ERR_SetValueNotNumeric` |A numeric field was assigned an incompatible value.
 |`ERR_SetValueNotObject` |An object field was assigned an incompatible value.
@@ -183,13 +183,13 @@ The following tables list the error codes exported to Tiri, with their constant 
 
 |`ERR_InitModule` |Module initialisation failed.
 |`ERR_WrongVersion` |Version mismatch detected.
-|`ERR_NoAction` |The requested action is not available.
+|`ERR_NoAction` |The object does not support the requested action.
 |`ERR_NoSupport` |The requested feature is not supported.
 |`ERR_SystemCorrupt` |System corruption detected.
 |`ERR_CoreVersion` |Core framework version mismatch.
 |`ERR_ModuleOpenFailed` |The module loaded, but failed in its Open routine.
 |`ERR_ModuleMissingInit` |Module is missing its initialisation routine.
-|`ERR_SystemLocked` |The system is locked and cannot accept the operation.
+|`ERR_SystemLocked` |Part of the system is unreachable due to a persistent lock.
 |`ERR_ModuleMissingName` |Module is missing its name identifier.
 |`ERR_SystemCall` |A system call failed.
 |`ERR_LoadModule` |Failed to load a module binary.
@@ -305,22 +305,22 @@ The following tables list the error codes exported to Tiri, with their constant 
 |===
 |Constant |Description
 
-|`ERR_LowCapacity` |Insufficient capacity.
+|`ERR_LowCapacity` |An array is at low capacity.
 |`ERR_ArrayFull` |The array is full and cannot accept new elements.
 |`ERR_DoNotExpunge` |The object must not be expunged.
-|`ERR_NoMethods` |No methods are available for the object.
-|`ERR_OwnerPassThrough` |The operation was passed through to the owner.
-|`ERR_VirtualVolume` |A virtual volume error occurred.
+|`ERR_NoMethods` |The class does not export any methods.
+|`ERR_OwnerPassThrough` |A notification was passed through to the container that owns the object.
+|`ERR_VirtualVolume` |A path could not be resolved because it refers to a virtual volume.
 |`ERR_UnrecognisedFieldType` |The field type is not recognised.
 |`ERR_Loop` |An infinite loop was detected.
 |`ERR_SanityCheckFailed` |A sanity check failed.
 |`ERR_AudioMix` |Audio mixing failed.
 |`ERR_TaskStillExists` |A task still exists when it was expected to have terminated.
 |`ERR_Recursion` |A recursive function call was detected.
-|`ERR_IllegalAddress` |An illegal address was specified.
+|`ERR_IllegalAddress` |An address pointer lies outside the task's memory map.
 |`ERR_InvalidHandle` |An invalid handle was provided.
 |`ERR_SetVolume` |Failed to set the volume path.
 |`ERR_CreateResource` |Resource creation failed.
-|`ERR_Function` |A function error occurred.
+|`ERR_Function` |A function call failed.
 |`ERR_TestFailed` |One or more unit tests reported a failure.
 |===

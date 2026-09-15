@@ -2,7 +2,7 @@
 = Tiri Reference Manual: {copyright}
 Paul Manias
 :doctype: book
-:copyright: © 2026 Paul Manias.
+:copyright: © 2026 Paul Manias
 :pdf-themesdir: {docdir}
 :pdf-theme: tiri-theme.yml
 :imagesdir: images/

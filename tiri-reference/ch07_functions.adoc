@@ -251,12 +251,14 @@ Self referencing performs no type test of its own.  A read of a key that the con
 
 The `&` must be followed immediately by an identifier, with no intervening whitespace or comment.  Suffixes after that identifier are unrestricted, so `&config.retries` and `&entries[Index]` are valid while `&[Index]` is not.  A self reference whose identifier is absent or displaced is rejected at compile time.
 
-The adjacency requirement is what separates the two roles of the character.  A `&` that is separated from its operand by whitespace is the bitwise AND operator (<<sec-bitwise-operators>>):
+The adjacency requirement separates the two roles of the character everywhere in an expression.  An `&` followed immediately by an identifier begins a self reference, even when a left-hand expression precedes it.  Insert whitespace after `&` to use the bitwise AND operator with an identifier (<<sec-bitwise-operators>>).  A non-identifier operand, such as a number or parenthesised expression, is unambiguous and requires no whitespace:
 
 [source,tiri]
 ----
 &flags           -- self reference to the field 'flags'
 mask & flags     -- bitwise AND
+mask&flags       -- does not form bitwise AND; '&flags' begins contextual syntax
+mask&7           -- bitwise AND; a number cannot name a contextual field
 ----
 
 [[sec-context-expression]]
@@ -714,7 +716,7 @@ function everyNum():<num!, ...>
 end
 ----
 
-To reduce internal book-keeping, the maximum number of typed return positions is 8.  Types beyond the 8th position are treated as `any`.
+To reduce internal book-keeping, the maximum number of typed return positions is 8.  Declaring a ninth type is a parse error.
 
 [[sec-return-type-inference]]
 ==== Return Type Inference

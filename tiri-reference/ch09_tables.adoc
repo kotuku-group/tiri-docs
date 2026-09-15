@@ -410,7 +410,7 @@ table.insert(t, 0, 'z')
 
 Removes and returns the element at `Pos`.  If `Pos` is omitted, removes the last element.  Remaining elements shift downward to fill the gap.
 
-Returns `nil` if the table is empty or `Pos` is out of bounds.  The table is not modified in either case.
+Returns no value if the table is empty or `Pos` is out of bounds, so an assignment target reads `nil` and a call in a tail position contributes no argument.  The table is not modified in either case.
 
 `Table` must be classified as a sequence.  Raises an error if it is not, as defined in <<sec-table-classification>>.
 

@@ -1,0 +1,1315 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="pandoc">
+<title>Tiri Standard Interfaces Cheat Sheet</title>
+<link rel="stylesheet" href="print.css">
+</head>
+<body>
+<header class="page-header">
+   <span>Tiri Standard Interfaces Cheat Sheet</span>
+   <span class="page-header-label">Standard library quick reference</span>
+</header>
+<main>
+<h1 id="tiri-standard-interfaces-cheat-sheet">Tiri Standard Interfaces
+Cheat Sheet</h1>
+<p><code>s</code>, <code>a</code>, <code>t</code>, <code>r</code> and
+<code>rx</code> denote string, array, table, range and compiled
+regular-expression values. Square brackets mark optional parameters;
+<code>...</code> accepts additional values.</p>
+<h4 id="globals">Globals</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>arg(key, [default])</code></td>
+<td>Read a named command-line argument</td>
+</tr>
+<tr>
+<td><code>assert(condition, [message])</code></td>
+<td>Raise if a condition is false</td>
+</tr>
+<tr>
+<td><code>exec(code)</code></td>
+<td>Execute Tiri source code</td>
+</tr>
+<tr>
+<td><code>forEach(target, callback)</code></td>
+<td>Call a function for each iterator result</td>
+</tr>
+<tr>
+<td><code>getmetatable(value)</code></td>
+<td>Return a value’s metatable</td>
+</tr>
+<tr>
+<td><code>ipairs(t)</code></td>
+<td>Iterate over sequential index-value pairs</td>
+</tr>
+<tr>
+<td><code>isthunk(value)</code></td>
+<td>Test whether a value is an unresolved thunk</td>
+</tr>
+<tr>
+<td><code>keys(t)</code></td>
+<td>Iterate over all keys</td>
+</tr>
+<tr>
+<td><code>loadFile(path)</code></td>
+<td>Execute a Tiri source file</td>
+</tr>
+<tr>
+<td><code>msg(...)</code></td>
+<td>Write an API-level log message</td>
+</tr>
+<tr>
+<td><code>next(t, [previous_key])</code></td>
+<td>Return the next table entry</td>
+</tr>
+<tr>
+<td><code>pairs(t)</code></td>
+<td>Iterate over all key-value pairs</td>
+</tr>
+<tr>
+<td><code>print(...)</code></td>
+<td>Write values to standard error</td>
+</tr>
+<tr>
+<td><code>rawequal(a, b)</code></td>
+<td>Compare values without metamethods</td>
+</tr>
+<tr>
+<td><code>rawget(t, key)</code></td>
+<td>Read a table entry without metamethods</td>
+</tr>
+<tr>
+<td><code>rawlen(t)</code></td>
+<td>Return table length without metamethods</td>
+</tr>
+<tr>
+<td><code>rawset(t, key, value)</code></td>
+<td>Write a table entry without metamethods</td>
+</tr>
+<tr>
+<td><code>rawtype(value)</code></td>
+<td>Return the parameterised runtime type</td>
+</tr>
+<tr>
+<td><code>resolve(thunk)</code></td>
+<td>Evaluate a thunk</td>
+</tr>
+<tr>
+<td><code>setmetatable(t, metatable)</code></td>
+<td>Set a table’s metatable</td>
+</tr>
+<tr>
+<td><code>tonumber(value, [base])</code></td>
+<td>Convert a value to a number</td>
+</tr>
+<tr>
+<td><code>tostring(value)</code></td>
+<td>Convert a value to a string</td>
+</tr>
+<tr>
+<td><code>type(value)</code></td>
+<td>Return the display type name</td>
+</tr>
+<tr>
+<td><code>values(t)</code></td>
+<td>Iterate over all values</td>
+</tr>
+</tbody>
+</table>
+<h4 id="strings">Strings</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>string.alloc(size)</code></td>
+<td>Allocate a mutable string buffer</td>
+</tr>
+<tr>
+<td><code>string.byte(s, [start], [stop])</code></td>
+<td>Return byte values from a string</td>
+</tr>
+<tr>
+<td><code>string.cap(s)</code></td>
+<td>Capitalise the first character</td>
+</tr>
+<tr>
+<td><code>string.char(...)</code></td>
+<td>Create a string from byte values</td>
+</tr>
+<tr>
+<td><code>string.count(s, keyword)</code></td>
+<td>Count non-overlapping occurrences</td>
+</tr>
+<tr>
+<td><code>string.decap(s)</code></td>
+<td>Lowercase the first character</td>
+</tr>
+<tr>
+<td><code>string.endsWith(s, suffix)</code></td>
+<td>Test whether a string ends with a suffix</td>
+</tr>
+<tr>
+<td><code>string.escXML(s)</code></td>
+<td>Escape XML content</td>
+</tr>
+<tr>
+<td><code>string.find(s, keyword, [start])</code></td>
+<td>Find the first literal occurrence</td>
+</tr>
+<tr>
+<td><code>string.format(format, ...)</code></td>
+<td>Format a string with printf syntax</td>
+</tr>
+<tr>
+<td><code>string.hash(s, [case_sensitive])</code></td>
+<td>Calculate a 32-bit string hash</td>
+</tr>
+<tr>
+<td><code>string.lower(s)</code></td>
+<td>Convert string to lowercase</td>
+</tr>
+<tr>
+<td><code>string.pop(s, [count])</code></td>
+<td>Remove trailing characters</td>
+</tr>
+<tr>
+<td><code>string.rep(s, count, [separator])</code></td>
+<td>Repeat a string</td>
+</tr>
+<tr>
+<td><code>string.replace(s, search, replacement, [limit])</code></td>
+<td>Replace literal occurrences</td>
+</tr>
+<tr>
+<td><code>string.reverse(s)</code></td>
+<td>Reverse the byte order</td>
+</tr>
+<tr>
+<td><code>string.rtrim(s)</code></td>
+<td>Remove trailing whitespace</td>
+</tr>
+<tr>
+<td><code>string.split(s, [separator])</code></td>
+<td>Split a string into an array</td>
+</tr>
+<tr>
+<td><code>string.startsWith(s, prefix)</code></td>
+<td>Test whether a string starts with a prefix</td>
+</tr>
+<tr>
+<td><code>string.sub(s, start, [stop])</code></td>
+<td>Extract a substring</td>
+</tr>
+<tr>
+<td><code>string.toArray(s)</code></td>
+<td>Copy string bytes to an array</td>
+</tr>
+<tr>
+<td><code>string.trim(s)</code></td>
+<td>Remove leading and trailing whitespace</td>
+</tr>
+<tr>
+<td><code>string.unescapeXML(s)</code></td>
+<td>Decode XML entities</td>
+</tr>
+<tr>
+<td><code>string.upper(s)</code></td>
+<td>Convert string to uppercase</td>
+</tr>
+</tbody>
+</table>
+<h4 id="arrays">Arrays</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a.all(predicate)</code></td>
+<td>Test whether all elements match</td>
+</tr>
+<tr>
+<td><code>a.any(predicate)</code></td>
+<td>Test whether any element matches</td>
+</tr>
+<tr>
+<td><code>a.clear()</code></td>
+<td>Reset the array length to zero</td>
+</tr>
+<tr>
+<td><code>a.clone()</code></td>
+<td>Copy the array</td>
+</tr>
+<tr>
+<td><code>a.concat([separator], [format], [start], [stop])</code></td>
+<td>Concatenate elements into a string</td>
+</tr>
+<tr>
+<td><code>a.copy(source, [dest_index, src_index, count])</code></td>
+<td>Copy values into the array</td>
+</tr>
+<tr>
+<td><code>a.each(callback)</code></td>
+<td>Call a function for each element</td>
+</tr>
+<tr>
+<td><code>a.fill(value, [start, [stop]])</code></td>
+<td>Fill an index span with a value</td>
+</tr>
+<tr>
+<td><code>a.fill(value, range)</code></td>
+<td>Fill a range with a value</td>
+</tr>
+<tr>
+<td><code>a.filter(predicate)</code></td>
+<td>Copy elements that match a predicate</td>
+</tr>
+<tr>
+<td><code>a.find(predicate)</code></td>
+<td>Find the first matching element</td>
+</tr>
+<tr>
+<td><code>a.findIndex(predicate)</code></td>
+<td>Find the first matching element index</td>
+</tr>
+<tr>
+<td><code>a.first()</code></td>
+<td>Return the first element</td>
+</tr>
+<tr>
+<td><code>a.getString([start, length])</code></td>
+<td>Extract a string from a byte array</td>
+</tr>
+<tr>
+<td><code>a.indexOf(value, [start], [stop])</code></td>
+<td>Find a value within an index span</td>
+</tr>
+<tr>
+<td><code>a.indexOf(value, range)</code></td>
+<td>Find a value within a range</td>
+</tr>
+<tr>
+<td><code>a.insert(index, value, ...)</code></td>
+<td>Insert elements at an index</td>
+</tr>
+<tr>
+<td><code>a.last()</code></td>
+<td>Return the last element</td>
+</tr>
+<tr>
+<td><code>a.map(callback, [element_type])</code></td>
+<td>Transform elements into a new array</td>
+</tr>
+<tr>
+<td><code>a.mapSame(callback)</code></td>
+<td>Transform elements preserving their type</td>
+</tr>
+<tr>
+<td><code>array.new(type, size)</code></td>
+<td>Create a typed array of a fixed size</td>
+</tr>
+<tr>
+<td><code>array.of(type, value, ...)</code></td>
+<td>Create a typed array from values</td>
+</tr>
+<tr>
+<td><code>a.pop([count])</code></td>
+<td>Remove and return trailing elements</td>
+</tr>
+<tr>
+<td><code>a.push(value, ...)</code></td>
+<td>Append elements</td>
+</tr>
+<tr>
+<td><code>a.readOnly()</code></td>
+<td>Test whether the array is read-only</td>
+</tr>
+<tr>
+<td><code>a.reduce(initial, reducer)</code></td>
+<td>Fold elements into one value</td>
+</tr>
+<tr>
+<td><code>a.remove(index, [count])</code></td>
+<td>Remove elements at an index</td>
+</tr>
+<tr>
+<td><code>a.resize(new_size)</code></td>
+<td>Change the array length</td>
+</tr>
+<tr>
+<td><code>a.reverse()</code></td>
+<td>Reverse elements in place</td>
+</tr>
+<tr>
+<td><code>a.setString(s, [start])</code></td>
+<td>Write a string to a byte array</td>
+</tr>
+<tr>
+<td><code>a.slice(range)</code></td>
+<td>Extract a range into a new array</td>
+</tr>
+<tr>
+<td><code>a.sort([descending])</code></td>
+<td>Sort elements in place</td>
+</tr>
+<tr>
+<td><code>a.sort(comparator)</code></td>
+<td>Sort elements with a comparator</td>
+</tr>
+<tr>
+<td><code>a.table()</code></td>
+<td>Copy the array to a table</td>
+</tr>
+<tr>
+<td><code>a.type()</code></td>
+<td>Return the runtime array type</td>
+</tr>
+</tbody>
+</table>
+<h4 id="tables">Tables</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>table.clear(t)</code></td>
+<td>Remove all table entries</td>
+</tr>
+<tr>
+<td><code>table.concat(t, [separator, start, stop])</code></td>
+<td>Concatenate sequential elements</td>
+</tr>
+<tr>
+<td><code>table.empty(t)</code></td>
+<td>Test whether a table has no entries</td>
+</tr>
+<tr>
+<td><code>table.insert(t, [pos,] value)</code></td>
+<td>Insert a sequential element</td>
+</tr>
+<tr>
+<td><code>table.kind(t)</code></td>
+<td>Return the table classification</td>
+</tr>
+<tr>
+<td><code>table.move(t, start, stop, target, [dest_table])</code></td>
+<td>Copy a span of elements</td>
+</tr>
+<tr>
+<td><code>table.new(array_size, hash_size)</code></td>
+<td>Create a pre-allocated table</td>
+</tr>
+<tr>
+<td><code>table.remove(t, [pos])</code></td>
+<td>Remove and return a sequential element</td>
+</tr>
+<tr>
+<td><code>table.size(t)</code></td>
+<td>Count all live entries</td>
+</tr>
+<tr>
+<td><code>table.slice(t, range)</code></td>
+<td>Extract a range into a new table</td>
+</tr>
+<tr>
+<td><code>table.sort(t, [comparator])</code></td>
+<td>Sort sequential elements in place</td>
+</tr>
+<tr>
+<td><code>table.sortByKeys(t, [comparator])</code></td>
+<td>Iterate in sorted key order</td>
+</tr>
+<tr>
+<td><code>table.toXML(t)</code></td>
+<td>Convert a table to XML</td>
+</tr>
+</tbody>
+</table>
+<h4 id="ranges">Ranges</h4>
+<table>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>r.all(predicate)</code></td>
+<td>Test whether all values match</td>
+</tr>
+<tr>
+<td><code>r.any(predicate)</code></td>
+<td>Test whether any value matches</td>
+</tr>
+<tr>
+<td><code>r.each(callback)</code></td>
+<td>Call a function for each value</td>
+</tr>
+<tr>
+<td><code>r.filter(predicate)</code></td>
+<td>Copy matching values to an array</td>
+</tr>
+<tr>
+<td><code>r.find(predicate)</code></td>
+<td>Find the first matching value</td>
+</tr>
+<tr>
+<td><code>r.findIndex(predicate)</code></td>
+<td>Find the first matching ordinal</td>
+</tr>
+<tr>
+<td><code>r.indexOf(value)</code></td>
+<td>Find the ordinal of a value</td>
+</tr>
+<tr>
+<td><code>r.map(transform, [element_type])</code></td>
+<td>Transform values into an array</td>
+</tr>
+<tr>
+<td><code>range.new(start, stop, [inclusive], [step])</code></td>
+<td>Create a range</td>
+</tr>
+<tr>
+<td><code>range(start, stop, [inclusive], [step])</code></td>
+<td>Create a range</td>
+</tr>
+<tr>
+<td><code>r.reduce(initial, reducer)</code></td>
+<td>Fold values into one result</td>
+</tr>
+<tr>
+<td><code>range.slice(object, range)</code></td>
+<td>Extract a range from a collection</td>
+</tr>
+<tr>
+<td><code>r.take(count)</code></td>
+<td>Copy the first values to an array</td>
+</tr>
+<tr>
+<td><code>r.toArray()</code></td>
+<td>Convert a range to an array</td>
+</tr>
+</tbody>
+</table>
+<h4 id="mathematics">Mathematics</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>math.abs(x)</code></td>
+<td>Return the absolute value</td>
+</tr>
+<tr>
+<td><code>math.acos(x)</code></td>
+<td>Calculate the inverse cosine</td>
+</tr>
+<tr>
+<td><code>math.asin(x)</code></td>
+<td>Calculate the inverse sine</td>
+</tr>
+<tr>
+<td><code>math.atan(x)</code></td>
+<td>Calculate the inverse tangent</td>
+</tr>
+<tr>
+<td><code>math.atan2(y, x)</code></td>
+<td>Calculate the two-argument inverse tangent</td>
+</tr>
+<tr>
+<td><code>math.ceil(x)</code></td>
+<td>Round towards positive infinity</td>
+</tr>
+<tr>
+<td><code>math.clamp(value, lower, upper)</code></td>
+<td>Constrain a value to an interval</td>
+</tr>
+<tr>
+<td><code>math.cos(x)</code></td>
+<td>Calculate the cosine</td>
+</tr>
+<tr>
+<td><code>math.cosh(x)</code></td>
+<td>Calculate the hyperbolic cosine</td>
+</tr>
+<tr>
+<td><code>math.deg(x)</code></td>
+<td>Convert radians to degrees</td>
+</tr>
+<tr>
+<td><code>math.exp(x)</code></td>
+<td>Raise e to a power</td>
+</tr>
+<tr>
+<td><code>math.floor(x)</code></td>
+<td>Round towards negative infinity</td>
+</tr>
+<tr>
+<td><code>math.frexp(x)</code></td>
+<td>Split a number into mantissa and exponent</td>
+</tr>
+<tr>
+<td><code>math.ldexp(mantissa, exponent)</code></td>
+<td>Multiply a mantissa by a power of two</td>
+</tr>
+<tr>
+<td><code>math.log(x, [base])</code></td>
+<td>Calculate a logarithm</td>
+</tr>
+<tr>
+<td><code>math.log10(x)</code></td>
+<td>Calculate a base-10 logarithm</td>
+</tr>
+<tr>
+<td><code>math.max(x, ...)</code></td>
+<td>Return the largest argument</td>
+</tr>
+<tr>
+<td><code>math.min(x, ...)</code></td>
+<td>Return the smallest argument</td>
+</tr>
+<tr>
+<td><code>math.modf(x)</code></td>
+<td>Split integer and fractional parts</td>
+</tr>
+<tr>
+<td><code>math.rad(x)</code></td>
+<td>Convert degrees to radians</td>
+</tr>
+<tr>
+<td><code>math.random([low], [high])</code></td>
+<td>Generate a pseudo-random number</td>
+</tr>
+<tr>
+<td><code>math.randomSeed(seed)</code></td>
+<td>Seed the random number generator</td>
+</tr>
+<tr>
+<td><code>math.round(x)</code></td>
+<td>Round to the nearest integer</td>
+</tr>
+<tr>
+<td><code>math.sin(x)</code></td>
+<td>Calculate the sine</td>
+</tr>
+<tr>
+<td><code>math.sinh(x)</code></td>
+<td>Calculate the hyperbolic sine</td>
+</tr>
+<tr>
+<td><code>math.sqrt(x)</code></td>
+<td>Calculate the square root</td>
+</tr>
+<tr>
+<td><code>math.tan(x)</code></td>
+<td>Calculate the tangent</td>
+</tr>
+<tr>
+<td><code>math.tanh(x)</code></td>
+<td>Calculate the hyperbolic tangent</td>
+</tr>
+</tbody>
+</table>
+<h4 id="regular-expressions">Regular expressions</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>regex.escape(text)</code></td>
+<td>Escape regular-expression characters</td>
+</tr>
+<tr>
+<td><code>rx.extract(text, [offset], [flags])</code></td>
+<td>Extract groups from the first match</td>
+</tr>
+<tr>
+<td><code>rx.findAll(text, [offset], [flags])</code></td>
+<td>Iterate over all matches</td>
+</tr>
+<tr>
+<td><code>rx.findFirst(text, [offset], [flags])</code></td>
+<td>Find the first match</td>
+</tr>
+<tr>
+<td><code>rx.match(text, [flags])</code></td>
+<td>Match the complete string</td>
+</tr>
+<tr>
+<td><code>regex.new(pattern, [flags])</code></td>
+<td>Compile a regular expression</td>
+</tr>
+<tr>
+<td><code>rx.replace(text, replacement, [flags])</code></td>
+<td>Replace matching text</td>
+</tr>
+<tr>
+<td><code>rx.search(text, [flags])</code></td>
+<td>Return all matches</td>
+</tr>
+<tr>
+<td><code>rx.split(text, [flags])</code></td>
+<td>Split text at match boundaries</td>
+</tr>
+<tr>
+<td><code>rx.test(text, [flags])</code></td>
+<td>Test whether a match exists</td>
+</tr>
+</tbody>
+</table>
+<h4 id="io">I/O</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>file.close()</code></td>
+<td>Close a file handle</td>
+</tr>
+<tr>
+<td><code>io.close([file])</code></td>
+<td>Close a file handle</td>
+</tr>
+<tr>
+<td><code>io.ui.copy(source, dest, [move])</code></td>
+<td>Copy or move files with transfer UI</td>
+</tr>
+<tr>
+<td><code>io.ui.delete(paths)</code></td>
+<td>Delete paths with transfer UI</td>
+</tr>
+<tr>
+<td><code>file.flush()</code></td>
+<td>Flush a file’s write buffer</td>
+</tr>
+<tr>
+<td><code>io.flush()</code></td>
+<td>Flush the default output buffer</td>
+</tr>
+<tr>
+<td><code>io.input([source])</code></td>
+<td>Get or set the default input</td>
+</tr>
+<tr>
+<td><code>io.isFolder(path)</code></td>
+<td>Test whether a path ends with a separator</td>
+</tr>
+<tr>
+<td><code>file.lines()</code></td>
+<td>Iterate over lines in a file</td>
+</tr>
+<tr>
+<td><code>io.lines([source])</code></td>
+<td>Iterate over input lines</td>
+</tr>
+<tr>
+<td><code>io.open(path, [mode])</code></td>
+<td>Open a file</td>
+</tr>
+<tr>
+<td><code>io.output([source])</code></td>
+<td>Get or set the default output</td>
+</tr>
+<tr>
+<td><code>io.ui.paste(dest)</code></td>
+<td>Paste clipboard files with transfer UI</td>
+</tr>
+<tr>
+<td><code>file.read([format, ...])</code></td>
+<td>Read data from a file</td>
+</tr>
+<tr>
+<td><code>io.read([format, ...])</code></td>
+<td>Read from the default input</td>
+</tr>
+<tr>
+<td><code>io.readAll(path)</code></td>
+<td>Read an entire file</td>
+</tr>
+<tr>
+<td><code>io.sanitisePath(path)</code></td>
+<td>Remove repeated path separators</td>
+</tr>
+<tr>
+<td><code>io.search(path, options)</code></td>
+<td>Search for matching files</td>
+</tr>
+<tr>
+<td><code>file.seek([whence, [offset]])</code></td>
+<td>Get or set the file position</td>
+</tr>
+<tr>
+<td><code>io.splitPath(path)</code></td>
+<td>Split a path into directory and file</td>
+</tr>
+<tr>
+<td><code>io.tempFile()</code></td>
+<td>Create an in-memory file buffer</td>
+</tr>
+<tr>
+<td><code>io.type(value)</code></td>
+<td>Return a file handle’s state</td>
+</tr>
+<tr>
+<td><code>file.write(data, ...)</code></td>
+<td>Write data to a file</td>
+</tr>
+<tr>
+<td><code>io.write(data, ...)</code></td>
+<td>Write to the default output</td>
+</tr>
+<tr>
+<td><code>io.writeAll(path, content)</code></td>
+<td>Write an entire file</td>
+</tr>
+</tbody>
+</table>
+<h4 id="structures">Structures</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>struct.clone(source)</code></td>
+<td>Deep-copy a structure</td>
+</tr>
+<tr>
+<td><code>struct.copy(dest, source)</code></td>
+<td>Deep-copy into a structure</td>
+</tr>
+<tr>
+<td><code>struct.def(struct_name)</code></td>
+<td>Return a structure constructor</td>
+</tr>
+<tr>
+<td><code>struct.new(struct_name, [fields])</code></td>
+<td>Create and initialise a structure</td>
+</tr>
+<tr>
+<td><code>struct.new(struct_name, address)</code></td>
+<td>Reference structure data at an address</td>
+</tr>
+<tr>
+<td><code>inst.ptr([address])</code></td>
+<td>Get or replace the backing address</td>
+</tr>
+<tr>
+<td><code>struct.size(target)</code></td>
+<td>Return a structure’s byte size</td>
+</tr>
+</tbody>
+</table>
+<h4 id="objects">Objects</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>object.children([class_name])</code></td>
+<td>Return child object IDs</td>
+</tr>
+<tr>
+<td><code>obj.class(object)</code></td>
+<td>Return an object’s MetaClass</td>
+</tr>
+<tr>
+<td><code>object.detach()</code></td>
+<td>Convert a strong reference to weak</td>
+</tr>
+<tr>
+<td><code>object.exists()</code></td>
+<td>Test whether an object is alive</td>
+</tr>
+<tr>
+<td><code>obj.find(name, [class_name])</code></td>
+<td>Find an object by name</td>
+</tr>
+<tr>
+<td><code>obj.find(object_id, [class_name])</code></td>
+<td>Find an object by ID</td>
+</tr>
+<tr>
+<td><code>object.free()</code></td>
+<td>Destroy the underlying resource</td>
+</tr>
+<tr>
+<td><code>object.get(field_name, [default])</code></td>
+<td>Read a field by name</td>
+</tr>
+<tr>
+<td><code>object.getKey(key, [default])</code></td>
+<td>Read a key-value entry</td>
+</tr>
+<tr>
+<td><code>object.init()</code></td>
+<td>Initialise an object</td>
+</tr>
+<tr>
+<td><code>obj.new(class_name, [fields])</code></td>
+<td>Create an object</td>
+</tr>
+<tr>
+<td><code>object.set(field_name, value)</code></td>
+<td>Write a field by name</td>
+</tr>
+<tr>
+<td><code>object.setKey(key, value)</code></td>
+<td>Write a key-value entry</td>
+</tr>
+<tr>
+<td><code>object.state()</code></td>
+<td>Return the script state table</td>
+</tr>
+<tr>
+<td><code>object.subscribe(action_name, callback, [custom_ref])</code></td>
+<td>Subscribe to an action or method</td>
+</tr>
+<tr>
+<td><code>object.unsubscribe(action_name)</code></td>
+<td>Remove an action or method subscription</td>
+</tr>
+</tbody>
+</table>
+<h4 id="processing">Processing</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>processing.collect([mode], [options])</code></td>
+<td>Run a garbage-collection cycle</td>
+</tr>
+<tr>
+<td><code>processing.delayedCall(function)</code></td>
+<td>Schedule a function for the next cycle</td>
+</tr>
+<tr>
+<td><code>proc.flush()</code></td>
+<td>Clear all monitored signal flags</td>
+</tr>
+<tr>
+<td><code>processing.flush()</code></td>
+<td>Clear the script signal flag</td>
+</tr>
+<tr>
+<td><code>processing.gcStats()</code></td>
+<td>Return garbage-collector statistics</td>
+</tr>
+<tr>
+<td><code>processing.halt(seconds)</code></td>
+<td>Process messages for a fixed duration</td>
+</tr>
+<tr>
+<td><code>processing.new([options])</code></td>
+<td>Create a processing object</td>
+</tr>
+<tr>
+<td><code>proc.signal()</code></td>
+<td>Signal a processing object</td>
+</tr>
+<tr>
+<td><code>processing.signal()</code></td>
+<td>Set the script signal flag</td>
+</tr>
+<tr>
+<td><code>proc.sleep([seconds])</code></td>
+<td>Wait on a processing object</td>
+</tr>
+<tr>
+<td><code>processing.sleep([seconds])</code></td>
+<td>Enter the message-processing loop</td>
+</tr>
+<tr>
+<td><code>processing.startCollector()</code></td>
+<td>Start automatic garbage collection</td>
+</tr>
+<tr>
+<td><code>processing.stopCollector()</code></td>
+<td>Stop automatic garbage collection</td>
+</tr>
+<tr>
+<td><code>subscribeEvent(event_name, callback)</code></td>
+<td>Subscribe to a system event</td>
+</tr>
+<tr>
+<td><code>processing.task()</code></td>
+<td>Return the current process task</td>
+</tr>
+<tr>
+<td><code>unsubscribeEvent(handle)</code></td>
+<td>Remove a system event subscription</td>
+</tr>
+</tbody>
+</table>
+<h4 id="asynchronous-calls">Asynchronous calls</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>async.action(object, name, [callback], [key], [args ...])</code></td>
+<td>Run an action asynchronously</td>
+</tr>
+<tr>
+<td><code>async.cancel(objects)</code></td>
+<td>Cancel pending asynchronous actions</td>
+</tr>
+<tr>
+<td><code>async.pool.clear()</code></td>
+<td>Clear the thread-safe value pool</td>
+</tr>
+<tr>
+<td><code>async.method(object, name, [callback], [key], [args ...])</code></td>
+<td>Run a method asynchronously</td>
+</tr>
+<tr>
+<td><code>async.pending(object)</code></td>
+<td>Count queued and active actions</td>
+</tr>
+<tr>
+<td><code>async.script(script, [callback])</code></td>
+<td>Run a script in another thread</td>
+</tr>
+<tr>
+<td><code>async.wait(objects, [timeout])</code></td>
+<td>Wait for queued work to complete</td>
+</tr>
+</tbody>
+</table>
+<h4 id="debugging">Debugging</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>debug.fileSources()</code></td>
+<td>Return loaded source files</td>
+</tr>
+<tr>
+<td><code>debug.anno.get(function)</code></td>
+<td>Return a function’s annotations</td>
+</tr>
+<tr>
+<td><code>debug.getEnv(function)</code></td>
+<td>Return a function’s environment</td>
+</tr>
+<tr>
+<td><code>debug.getHook()</code></td>
+<td>Return the active debug hook</td>
+</tr>
+<tr>
+<td><code>debug.getInfo(target, [what])</code></td>
+<td>Return function or stack information</td>
+</tr>
+<tr>
+<td><code>debug.getLocal(level, index)</code></td>
+<td>Return a local variable</td>
+</tr>
+<tr>
+<td><code>debug.getLocal(function, index)</code></td>
+<td>Return a declared parameter name</td>
+</tr>
+<tr>
+<td><code>debug.getMetatable(object)</code></td>
+<td>Return a metatable without protection</td>
+</tr>
+<tr>
+<td><code>debug.getRegistry()</code></td>
+<td>Return the registry table</td>
+</tr>
+<tr>
+<td><code>debug.getUpvalue(function, index)</code></td>
+<td>Return a function upvalue</td>
+</tr>
+<tr>
+<td><code>debug.getUserValue(userdata)</code></td>
+<td>Return a userdata value table</td>
+</tr>
+<tr>
+<td><code>debug.anno.list()</code></td>
+<td>Return all annotation entries</td>
+</tr>
+<tr>
+<td><code>debug.locality(name, [level])</code></td>
+<td>Determine where a name is declared</td>
+</tr>
+<tr>
+<td><code>debug.anno.set(function, annotations, [source], [name])</code></td>
+<td>Register function annotations</td>
+</tr>
+<tr>
+<td><code>debug.setEnv(function, t)</code></td>
+<td>Set a function’s environment</td>
+</tr>
+<tr>
+<td><code>debug.setHook(hook, mask, [count])</code></td>
+<td>Set a debug hook</td>
+</tr>
+<tr>
+<td><code>debug.setLocal(level, index, value)</code></td>
+<td>Set a local variable</td>
+</tr>
+<tr>
+<td><code>debug.setMetatable(object, t)</code></td>
+<td>Set a metatable without protection</td>
+</tr>
+<tr>
+<td><code>debug.setUpvalue(function, index, value)</code></td>
+<td>Set a function upvalue</td>
+</tr>
+<tr>
+<td><code>debug.setUserValue(userdata, t)</code></td>
+<td>Set a userdata value table</td>
+</tr>
+<tr>
+<td><code>debug.traceback([message, [level]])</code></td>
+<td>Return a stack trace</td>
+</tr>
+<tr>
+<td><code>debug.upvalueID(function, index)</code></td>
+<td>Return an upvalue identifier</td>
+</tr>
+<tr>
+<td><code>debug.upvalueJoin(function1, n1, function2, n2)</code></td>
+<td>Make two upvalues share storage</td>
+</tr>
+<tr>
+<td><code>debug.validate(code, [options])</code></td>
+<td>Validate Tiri source without running it</td>
+</tr>
+</tbody>
+</table>
+<h4 id="jit">JIT</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>jit.attach(callback, event)</code></td>
+<td>Register a compiler event callback</td>
+</tr>
+<tr>
+<td><code>jit.flush([target])</code></td>
+<td>Clear compiled code</td>
+</tr>
+<tr>
+<td><code>jit.util.funcBC(function, pc)</code></td>
+<td>Return a bytecode instruction</td>
+</tr>
+<tr>
+<td><code>jit.util.funcInfo(function, [pc])</code></td>
+<td>Return function metadata</td>
+</tr>
+<tr>
+<td><code>jit.util.funcK(function, index)</code></td>
+<td>Return a function constant</td>
+</tr>
+<tr>
+<td><code>jit.util.funcUName(function, index)</code></td>
+<td>Return an upvalue name</td>
+</tr>
+<tr>
+<td><code>jit.util.irCallAddr(index)</code></td>
+<td>Return an IR call address</td>
+</tr>
+<tr>
+<td><code>jit.off([target], [recursive])</code></td>
+<td>Disable JIT compilation</td>
+</tr>
+<tr>
+<td><code>jit.on([target], [recursive])</code></td>
+<td>Enable JIT compilation</td>
+</tr>
+<tr>
+<td><code>jit.opt.start([...flags])</code></td>
+<td>Configure JIT optimisation</td>
+</tr>
+<tr>
+<td><code>jit.status()</code></td>
+<td>Return JIT status and flags</td>
+</tr>
+<tr>
+<td><code>jit.util.traceExitStub([trace_no], exit_no)</code></td>
+<td>Return a trace exit-stub address</td>
+</tr>
+<tr>
+<td><code>jit.util.traceInfo(trace_no)</code></td>
+<td>Return trace metadata</td>
+</tr>
+<tr>
+<td><code>jit.util.traceIR(trace_no, index)</code></td>
+<td>Return trace IR metadata</td>
+</tr>
+<tr>
+<td><code>jit.util.traceK(trace_no, index)</code></td>
+<td>Return a trace constant</td>
+</tr>
+<tr>
+<td><code>jit.util.traceMC(trace_no)</code></td>
+<td>Return trace machine code</td>
+</tr>
+<tr>
+<td><code>jit.util.traceSnap(trace_no, snap_no)</code></td>
+<td>Return a trace snapshot</td>
+</tr>
+</tbody>
+</table>
+</main>
+<script>
+const continuationRows = new Map([
+   ['Strings', 'string.find(s, keyword, [start])'],
+   ['Arrays', 'a.indexOf(value, [start], [stop])'],
+   ['Mathematics', 'math.randomSeed(seed)'],
+   ['I/O', 'io.sanitisePath(path)'],
+   ['Debugging', 'debug.getRegistry()']
+]);
+
+document.querySelectorAll('h4').forEach((heading) => {
+   const table = heading.nextElementSibling;
+   if (!table || table.tagName !== 'TABLE' || !table.tHead) return;
+
+   const row = document.createElement('tr');
+   row.className = 'section-heading';
+   const cell = document.createElement('th');
+   cell.colSpan = 2;
+   cell.textContent = heading.textContent;
+   row.appendChild(cell);
+   table.tHead.prepend(row);
+   heading.remove();
+
+   const firstSignature = continuationRows.get(cell.textContent);
+   if (!firstSignature) return;
+
+   const rows = Array.from(table.tBodies[0].rows);
+   const firstRow = rows.find((candidate) => candidate.cells[0].textContent.trim() === firstSignature);
+   if (!firstRow) return;
+
+   const continuation = table.cloneNode(false);
+   continuation.classList.add('continuation');
+   continuation.appendChild(table.tHead.cloneNode(true));
+   continuation.querySelector('.section-heading th').textContent = cell.textContent + ' (cont.)';
+
+   const body = document.createElement('tbody');
+   let current = firstRow;
+   while (current) {
+      const next = current.nextElementSibling;
+      body.appendChild(current);
+      current = next;
+   }
+   continuation.appendChild(body);
+   table.after(continuation);
+});
+</script>
+</body>
+</html>

@@ -45,6 +45,8 @@ function demonstrate_lifo()
    end
    print('body')
 end
+
+demonstrate_lifo()
 -- Output:
 -- body
 -- second registered
@@ -84,6 +86,8 @@ function scoped()
    end -- inner defer executes here
    print('outer body')
 end -- outer defer executes here
+
+scoped()
 -- Output:
 -- inner body
 -- inner
@@ -251,7 +255,7 @@ defer(Param1, Param2, ...)
 end(Expr1, Expr2, ...)
 ----
 
-Parameters are declared in the parentheses after `defer`.  Arguments are provided in the parentheses after `end`.  The number of arguments must match the number of parameters.  Each argument expression is evaluated at the point where `defer` is encountered, and the resulting values are bound to the corresponding parameters.
+Parameters are declared in the parentheses after `defer`.  Arguments are provided in the parentheses after `end`.  Each argument expression is evaluated at the point where `defer` is encountered, and the resulting values are bound to the corresponding parameters.  The counts are not required to match: a surplus argument is discarded, and a parameter with no corresponding argument is bound to `nil`.
 
 The block is registered only after every argument expression has been evaluated.  An error raised while evaluating an argument propagates unchanged and leaves the block unregistered, so the body does not run on the resulting unwind:
 
@@ -336,6 +340,7 @@ The `<close>` attribute appears between the variable name and the optional type 
 
 Because `<close>` is only meaningful on local variables, the parser treats `Name <close> = Expression` as a local declaration even without the `local` keyword.  The two forms are semantically identical.  The attribute has the same effect on any name in a comma-separated list, and the full rule is defined in <<sec-declarations-without-local>>.
 
+[[sec-the-close-metamethod]]
 ==== The pass:[__]close Metamethod
 
 When a `<close>` variable's scope exits, the runtime invokes the `pass:[__]close` metamethod from the value's metatable.  The value being closed is the subject of the metamethod, which declares one argument:
@@ -650,7 +655,12 @@ Once evaluated, the result is cached.  Subsequent accesses return the cached val
 [source,tiri]
 ----
 count = 0
-x = <{ count++; count }>
+function bump():num
+   count++
+   return count
+end
+
+x = <{ bump() }>
 print(resolve(x))  -- 1 (evaluates, caches)
 print(resolve(x))  -- 1 (returns cached value)
 ----
@@ -790,13 +800,13 @@ indexterm:[finalisers] indexterm:[garbage collection, finalisers] The `pass:[__]
 |Mechanism |Runs |Error unwinding |Timing
 
 |`defer`
-|On normal exit from the enclosing scope
-|No
+|On any exit from the enclosing scope
+|Yes, without receiving the error
 |Deterministic
 
 |`<close>`
 |On any exit from the enclosing scope
-|Yes
+|Yes, receiving the error as an argument
 |Deterministic
 
 |`pass:[__]gc`

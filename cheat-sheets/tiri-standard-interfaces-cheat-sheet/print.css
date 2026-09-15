@@ -1,0 +1,185 @@
+@font-face {
+   font-family: "Noto Sans";
+   src: url("../../fonts/NotoSans-Regular.ttf") format("truetype");
+   font-weight: 400;
+}
+
+@font-face {
+   font-family: "Noto Sans";
+   src: url("../../fonts/NotoSans-Bold.ttf") format("truetype");
+   font-weight: 700;
+}
+
+@font-face {
+   font-family: "DejaVu Sans Mono";
+   src: url("../../fonts/DejaVuSansMono.ttf") format("truetype");
+   font-weight: 400;
+}
+
+@page {
+   size: A4 landscape;
+   margin: 8mm 10mm;
+}
+
+* {
+   box-sizing: border-box;
+}
+
+html {
+   color: #171717;
+   font-family: "Noto Sans", sans-serif;
+   font-size: 8.1pt;
+   line-height: 1.22;
+}
+
+body {
+   margin: 0;
+}
+
+main {
+   column-count: 2;
+   column-gap: 7mm;
+   column-rule: 0.25mm solid #b8b8b8;
+}
+
+.page-header {
+   display: flex;
+   column-span: all;
+   width: 100%;
+   height: 8mm;
+   margin-bottom: 1.8mm;
+   align-items: center;
+   justify-content: space-between;
+   border-bottom: 0.45mm solid #171717;
+   color: #981d0c;
+   font-size: 11pt;
+   font-weight: 700;
+   line-height: 1;
+   letter-spacing: -0.02em;
+}
+
+.page-header-label {
+   padding-right: 8mm;
+   color: #981d0c;
+   font-size: 6.4pt;
+   font-weight: 700;
+   letter-spacing: 0.09em;
+   text-transform: uppercase;
+}
+
+.page-header-label::after {
+   content: "";
+   position: absolute;
+   top: 1.2mm;
+   right: 0;
+   width: 5.5mm;
+   height: 5.5mm;
+   background: url("tiri.svg") center / contain no-repeat;
+}
+
+h1 {
+   display: none;
+}
+
+h1 + p {
+   column-span: all;
+   margin: 0 0 1.8mm;
+   padding: 1.1mm 1.4mm;
+   border-left: 0.6mm solid #981d0c;
+   background: #f1efee;
+}
+
+h4 {
+   break-after: avoid;
+   margin: 0 0 0.7mm;
+   padding: 0.8mm 1.2mm 0.7mm;
+   background: #8f1b0b;
+   color: #fff;
+   font-size: 7.7pt;
+   line-height: 1.05;
+   letter-spacing: 0.075em;
+   text-transform: uppercase;
+}
+
+.section-heading th {
+   padding: 0.8mm 1.2mm 0.7mm;
+   border: 0;
+   background: #8f1b0b;
+   color: #fff;
+   font-size: 7.7pt;
+   line-height: 1.05;
+   letter-spacing: 0.075em;
+   text-transform: uppercase;
+}
+
+table {
+   width: 100%;
+   margin: 0 0 1.7mm;
+   border-collapse: collapse;
+   table-layout: fixed;
+}
+
+table.continuation {
+   break-before: column;
+}
+
+thead {
+   display: table-header-group;
+}
+
+th,
+td {
+   padding: 0.53mm 0.7mm;
+   border-bottom: 0.2mm solid #c7c7c7;
+   vertical-align: top;
+   text-align: left;
+}
+
+th {
+   background: #ecebea;
+   font-size: 6.8pt;
+   font-weight: 700;
+   letter-spacing: 0.045em;
+   text-transform: uppercase;
+}
+
+th:first-child,
+td:first-child {
+   width: 51%;
+}
+
+tr {
+   break-inside: avoid;
+}
+
+tbody tr:nth-child(even) {
+   background: #f4f3f2;
+}
+
+code {
+   font-family: "DejaVu Sans Mono", monospace;
+   font-size: 6.7pt;
+   line-height: 1.18;
+   overflow-wrap: anywhere;
+   white-space: normal;
+}
+
+p code {
+   font-size: 7pt;
+}
+
+@media screen {
+   html {
+      background: #bbb;
+   }
+
+   body {
+      max-width: 277mm;
+      min-height: 190mm;
+      margin: 10mm auto;
+      padding: 8mm 10mm;
+      background: #fff;
+      box-shadow: 0 1mm 4mm #777;
+   }
+
+}

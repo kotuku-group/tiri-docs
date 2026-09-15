@@ -32,7 +32,7 @@ indexterm:[global functions] See <<ch-basic-syntax>>, <<ch-types-and-values>>, <
 |`setmetatable(Table, Metatable)`|Sets the metatable.  See <<ch-metatables-and-metamethods>>.
 |`getmetatable(Value)`           |Returns the metatable.
 |`isthunk(Value)`                |Returns `true` if `Value` is an unresolved thunk.  See <<sec-deferred-expressions>>.
-|`resolve(Thunk)`                |Evaluates and returns the value of a thunk.  See <<sec-deferred-expressions>>.
+|`resolve(Input)`                |Evaluates a deferred expression and returns its value.  Any other value is returned unchanged.  See <<sec-deferred-expressions>>.
 |`loadFile(Path)`                |Loads, parses and executes the Tiri source file at `Path`, returning its results.
 |`exec(Code)`                    |Parses and executes the Tiri source in `Code`, returning its results.
 |`arg(Key, [Default])`           |Returns the named command-line argument, or `Default` if not found.
@@ -412,6 +412,20 @@ File handles define `pass:[__]close`, so `local file <close> = io.open(pass:[...
 
 `io.stdin`, `io.stdout` and `io.stderr` are numeric stream descriptors, not file handles.  `io.input(io.stdin)` selects standard input.  Open the `std:in`, `std:out` and `std:err` volume paths to obtain a file handle for any of the three streams.
 
+=== Input Library
+indexterm:[library, input] See <<ch-input-handling>>.
+
+[cols="4,7",role=compact]
+|===
+|Signature |Description
+
+|`input.subscribe(Mask, [SurfaceFilter], [DeviceFilter], Callback)`|Subscribes to raw device events at the display level.  Returns an input handle.
+|`input.keyboard([SurfaceFilter], Callback)`|Subscribes to keyboard events independently of any vector.  Returns an input handle.
+|`input.requestItem(Source, Item, DataType, Callback)`|Requests data from the source of a drop event.
+|===
+
+An input handle exposes `handle.unsubscribe()`, which removes the subscription and releases its resources.
+
 === Struct Library
 indexterm:[library, struct] See <<ch-structs>>.
 
@@ -420,7 +434,6 @@ indexterm:[library, struct] See <<ch-structs>>.
 |Signature |Description
 
 |`struct.new(StructName, [Fields])`   |Creates a structure instance, optionally initialised from a table.
-|`struct.new(StructName, Address)`    |Creates a structure that references existing memory.
 |`struct.size(Target)`                |Returns the byte size of a structure definition, named or reached through an instance.
 |`struct.clone(Source)`               |Returns a deep copy of a structure instance.
 |`struct.copy(Dest, Source)`          |Deep-copies `Source` into `Dest` and returns `Dest`.
@@ -435,7 +448,9 @@ Typed literal syntax is also supported: `struct<Name> { Fields }`; see <<sec-str
 |===
 |Signature |Description
 
-|`inst.ptr([Address])`|Retrieves or replaces the backing memory address.
+|`inst.size()`       |Returns the byte size of the instance's structure definition.
+|`inst.clone()`      |Returns a deep copy of the instance.
+|`inst.copy(Source)` |Deep-copies `Source` into the instance and returns it.
 |===
 
 Instances support `#inst` (field count), `pairs(inst)` (declaration-order iteration), `tostring(inst)`, and `'Name' in inst`, which reports whether the definition declares a field of that name.
@@ -584,7 +599,7 @@ indexterm:[library, JIT] See <<ch-performance-and-the-jit>>.
 |`jit.flush([Target])`           |Clears compiled code, globally or for `Target`.
 |`jit.status()`                  |Returns `enabled, flags`, where `flags` is a table of active optimisation flags.
 |`jit.attach(Callback, Event)`   |Registers a compiler event callback.
-|`jit.opt.start(pass:[...]Flags)`|Sets optimisation parameters.
+|`jit.opt.start([pass:[...]Flags])`|Sets optimisation parameters.  With no arguments, resets to the default optimisation level.
 |===
 
 ==== Introspection

@@ -1,7 +1,7 @@
 [preface]
 == Foreword
 
-Tiri is currently in alpha.  Its syntax and behaviour may change between releases, and existing code may require migration.  Experimentation and feedback are welcome during development.
+Tiri is currently in beta ahead of its first 1.0 release.  Its syntax and behaviour is considered stable but may change if any issues arise from beta testing.  Experimentation and feedback are welcome during this process.
 
 [preface]
 == Acknowledgements

@@ -371,7 +371,7 @@ indexterm:[type annotations, arrays] indexterm:[arrays, type annotations] An arr
 
 [source,tiri]
 ----
-values:array<int>           -- integer elements only
+scores:array<int>           -- integer elements only
 names:array<str>            -- string elements only
 points:array<struct<Vec>>   -- elements of the Vec definition only
 matrix:array<array<int>>    -- arrays of integer elements only
@@ -1053,7 +1053,7 @@ end
 
 ==== Deferred Expressions
 
-A type test does not force a deferred expression (<<sec-deferred-expressions>>) whose declared type already answers the test.  An unconstrained descriptor that matches the thunk's declared type resolves without evaluating its body:
+A type test does not force evaluation of a deferred expression (<<sec-deferred-expressions>>) whose declared type already answers the test.  An unconstrained descriptor is answered from the thunk's declared type in both directions: the test yields `true` where the descriptor and the declared type agree, and `false` where they differ, and the body is evaluated in neither case.  `<any>` yields `true` without forcing, whatever the declared type:
 
 [source,tiri]
 ----
@@ -1063,9 +1063,21 @@ end
 
 local value = deferred_number()
 value is <num>   -- true, without running expensive()
+value is <str>   -- false, without running expensive()
 ----
 
-A constrained descriptor, or one that does not match the declared type, resolves the deferred expression to inspect its value.
+The test resolves the deferred expression, and therefore evaluates its body, in two cases: the descriptor carries an inner constraint, or the thunk declares no return type.  A thunk that has already resolved is tested against its cached value.
+
+[%unbreakable]
+[source,tiri]
+----
+thunk deferred_array():array<int>
+   return expensive()
+end
+
+local values = deferred_array()
+values is <array int>   -- forces: the descriptor is constrained
+----
 
 [[sec-the-any-type]]
 === The Any Type

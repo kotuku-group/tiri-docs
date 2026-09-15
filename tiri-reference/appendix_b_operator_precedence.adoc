@@ -23,7 +23,7 @@ indexterm:[operators, precedence] This appendix provides a quick-reference for a
 |4|`is`, `is not`, `!=`, `<`, `>`, `\<=`, `>=`, `in`, `has`, `≈` |Left
 |3|`and`|Left
 |2|`\|>`|Left
-|1|`or`, `??`, `?!`, `? :`, `?? :`|Left (ternary forms right)
+|1|`or`, `??`, `? :`, `?? :`|Left (ternary forms right)
 |===
 
 === Postfix and Suffix Operators
@@ -34,11 +34,13 @@ Postfix operators (`++`, `??` postfix) and suffix chains (`.field`, `[index]`, `
 
 `&name` and `+&&+` are primary expressions, not operators, so they carry no precedence of their own and accept the suffix chain above.
 
-The `&` at level 8 is the bitwise AND operator.  The two readings are separated by adjacency: a `&` followed immediately by an identifier is a self reference, and a `&` separated from its operand by whitespace is the binary operator.  A self reference that opens a line also terminates the expression on the preceding line.  See <<sec-self-referencing>>.
+The `&` at level 8 is the bitwise AND operator.  The two readings are separated by adjacency: an `&` followed immediately by an identifier begins a self reference regardless of its position or line, while whitespace after `&` selects the binary operator.  A number or parenthesised expression after `&` also selects the binary operator because neither can name a contextual field.  See <<sec-self-referencing>>.
 
-=== Compound Assignment Operators
+=== Statement-Level Operators
 
 Compound assignment operators (`+=`, `-=`, `*=`, `/=`, `%=`, `..=`, `?=`, `??=`) are statements, not expressions.  They do not participate in precedence evaluation.
+
+The guard operator `?!` is also a statement form.  It takes a complete expression on the left and one of `return`, `break`, `continue`, `raise` or `check` on the right, so it carries no precedence of its own.  See <<sec-conditional-operators>>.
 
 === Parentheses
 
@@ -54,10 +56,11 @@ Parentheses override precedence.  `(a + b) * c` forces addition before multiplic
 'a' .. 'b' .. 'c'   -- 'abc' (right-associative)
 x > 0 and x < 10    -- comparison (level 4) before logical (level 3)
 a & 0xFF | 0x100    -- AND (level 8) before OR (level 5)
-2 | 1 is 3          -- true: OR (level 5) before comparison (level 4)
+2 | 1 is 3          -- true: bitwise OR (level 5) before comparison (level 4)
+1 is 0 | 1          -- true: 1 is (0 | 1)
 6 & 3 .. 'x'        -- '2x': & (level 8) before .. (level 7)
 3 ^ 1 .. 'x'        -- error: .. (level 7) before ^ (level 6)
-flags has F1 | F2   -- has (level 4) consumes bitwise OR on RHS
+flags has F1 | F2   -- has consumes bitwise OR on its right operand
 a has b and c has d -- (a has b) and (c has d): has (4) before and (3)
 0.1 + 0.2 ≈ 0.3     -- arithmetic (level 10) before approx (level 4)
 x and y |> f()      -- (x and y) |> f(): and (3) before |> (2)

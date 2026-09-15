@@ -1,13 +1,29 @@
 # Tiri documentation
+#
+# From the Kōtuku repository root, configure the standard documentation build once:
+#
+#   cmake -S . -B build/agents -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=build/agents-install \
+#      -DRUN_ANYWHERE=TRUE -DKOTUKU_STATIC=OFF -DUNIT_TESTS=ON -DORIGO_CONSOLE=ON
+#
+# Then build the reference manual and all three cheat sheets:
+#
+#   cmake --build build/agents --config Debug --target tiri_reference_manual tiri_cheat_sheets --parallel
+#
+# The reference target writes PDF output to docs/tiri/pdf/ and HTML output to docs/tiri/html/.  It requires
+# asciidoctor, asciidoctor-pdf and python3.  The cheat-sheet target writes its PDFs to docs/tiri/pdf/ and requires a
+# Chromium-family browser.  CMake reports unavailable outputs during configuration when a required tool is missing.
 
 set (TIRI_REFERENCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tiri-reference")
 set (TIRI_REFERENCE_PDF "${CMAKE_CURRENT_SOURCE_DIR}/pdf/tiri-reference.pdf")
 set (TIRI_REFERENCE_HTML_DIR "${CMAKE_CURRENT_SOURCE_DIR}/html")
 set (TIRI_REFERENCE_HTML "${TIRI_REFERENCE_HTML_DIR}/index.html")
 set (TIRI_REFERENCE_HTML_ASSETS "${TIRI_REFERENCE_HTML_DIR}/.images-copied")
+set (TIRI_CHEAT_SHEET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cheat-sheets")
+set (TIRI_CHEAT_SHEET_PDF_DIR "${CMAKE_CURRENT_SOURCE_DIR}/pdf")
 
 find_program (ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)
 find_program (ASCIIDOCTOR_PDF_EXECUTABLE NAMES asciidoctor-pdf)
+find_program (CHROMIUM_EXECUTABLE NAMES google-chrome chromium chromium-browser chrome msedge microsoft-edge)
 find_program (PYTHON3_EXECUTABLE NAMES python3)
 
 file (GLOB TIRI_REFERENCE_CHAPTER_SOURCES CONFIGURE_DEPENDS
@@ -124,4 +140,48 @@ if (TIRI_REFERENCE_OUTPUTS)
       DEPENDS ${TIRI_REFERENCE_OUTPUTS})
 else ()
    message (STATUS "No Asciidoctor executable was found; the Tiri Reference Manual target will be unavailable.")
+endif ()
+
+set (TIRI_CHEAT_SHEET_NAMES
+   tiri-regex-cheat-sheet
+   tiri-standard-interfaces-cheat-sheet
+   tiri-syntax-cheat-sheet)
+
+file (GLOB TIRI_CHEAT_SHEET_FONT_SOURCES CONFIGURE_DEPENDS
+   "${CMAKE_CURRENT_SOURCE_DIR}/fonts/*")
+
+if (CHROMIUM_EXECUTABLE)
+   set (TIRI_CHEAT_SHEET_PDFS)
+
+   foreach (TIRI_CHEAT_SHEET_NAME IN LISTS TIRI_CHEAT_SHEET_NAMES)
+      set (TIRI_CHEAT_SHEET_SOURCE_DIR "${TIRI_CHEAT_SHEET_DIR}/${TIRI_CHEAT_SHEET_NAME}")
+      set (TIRI_CHEAT_SHEET_HTML "${TIRI_CHEAT_SHEET_SOURCE_DIR}/${TIRI_CHEAT_SHEET_NAME}.html")
+      set (TIRI_CHEAT_SHEET_PDF "${TIRI_CHEAT_SHEET_PDF_DIR}/${TIRI_CHEAT_SHEET_NAME}-v1.pdf")
+
+      add_custom_command (
+         OUTPUT "${TIRI_CHEAT_SHEET_PDF}"
+         COMMAND "${CMAKE_COMMAND}" -E make_directory "${TIRI_CHEAT_SHEET_PDF_DIR}"
+         COMMAND "${CHROMIUM_EXECUTABLE}"
+            --headless
+            --disable-gpu
+            --no-pdf-header-footer
+            --allow-file-access-from-files
+            --run-all-compositor-stages-before-draw
+            "--print-to-pdf=${TIRI_CHEAT_SHEET_PDF}"
+            "file://${TIRI_CHEAT_SHEET_HTML}"
+         DEPENDS
+            "${TIRI_CHEAT_SHEET_HTML}"
+            "${TIRI_CHEAT_SHEET_SOURCE_DIR}/print.css"
+            "${TIRI_CHEAT_SHEET_SOURCE_DIR}/tiri.svg"
+            ${TIRI_CHEAT_SHEET_FONT_SOURCES}
+         COMMENT "Building the ${TIRI_CHEAT_SHEET_NAME} PDF"
+         VERBATIM)
+
+      list (APPEND TIRI_CHEAT_SHEET_PDFS "${TIRI_CHEAT_SHEET_PDF}")
+   endforeach ()
+
+   add_custom_target (tiri_cheat_sheets
+      DEPENDS ${TIRI_CHEAT_SHEET_PDFS})
+else ()
+   message (STATUS "No Chromium browser was found; PDF output for the Tiri cheat sheets will be unavailable.")
 endif ()

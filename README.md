@@ -28,4 +28,4 @@ reconfigure the build tree.
 
 All files remain the sole copyright of Paul Manias unless otherwise specified.
 
-The re-distribution of these files or content generated from them is prohibited.  For publicly distributable electronic PDFs, please download them directly from our Git repository or website.
+The content of this repository is offered for personal use only.  The re-distribution of these files or content generated from them is prohibited.  For publicly distributable electronic PDFs or HTML, please download them directly from our Git repository or website.

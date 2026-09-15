@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="pandoc">
+<title>$pagetitle$</title>
+$for(css)$
+<link rel="stylesheet" href="$css$">
+$endfor$
+</head>
+<body>
+<header class="page-header">
+   <span>Tiri Standard Interfaces Cheat Sheet</span>
+   <span class="page-header-label">Standard library quick reference</span>
+</header>
+<main>
+$body$
+</main>
+<script>
+const continuationRows = new Map([
+   ['Strings', 'string.find(s, keyword, [start])'],
+   ['Arrays', 'a.indexOf(value, [start], [stop])'],
+   ['Mathematics', 'math.randomSeed(seed)'],
+   ['I/O', 'io.sanitisePath(path)'],
+   ['Debugging', 'debug.getRegistry()']
+]);
+
+document.querySelectorAll('h4').forEach((heading) => {
+   const table = heading.nextElementSibling;
+   if (!table || table.tagName !== 'TABLE' || !table.tHead) return;
+
+   const row = document.createElement('tr');
+   row.className = 'section-heading';
+   const cell = document.createElement('th');
+   cell.colSpan = 2;
+   cell.textContent = heading.textContent;
+   row.appendChild(cell);
+   table.tHead.prepend(row);
+   heading.remove();
+
+   const firstSignature = continuationRows.get(cell.textContent);
+   if (!firstSignature) return;
+
+   const rows = Array.from(table.tBodies[0].rows);
+   const firstRow = rows.find((candidate) => candidate.cells[0].textContent.trim() === firstSignature);
+   if (!firstRow) return;
+
+   const continuation = table.cloneNode(false);
+   continuation.classList.add('continuation');
+   continuation.appendChild(table.tHead.cloneNode(true));
+   continuation.querySelector('.section-heading th').textContent = cell.textContent + ' (cont.)';
+
+   const body = document.createElement('tbody');
+   let current = firstRow;
+   while (current) {
+      const next = current.nextElementSibling;
+      body.appendChild(current);
+      current = next;
+   }
+   continuation.appendChild(body);
+   table.after(continuation);
+});
+</script>
+</body>
+</html>

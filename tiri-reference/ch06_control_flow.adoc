@@ -69,10 +69,11 @@ repeat
 until i >= 5
 ----
 
-The scope of the `block` extends to include the `until` condition.  Variables declared inside the body are visible in the condition expression.
+The scope of the `block` ends at `until`.  A variable declared inside the body is not visible in the condition expression; referencing one raises a compile-time error.  A value that the condition must read is declared before the loop:
 
 [source,tiri]
 ----
+line = ''
 repeat
    line = read_line()
 until line is 'quit'
@@ -93,7 +94,7 @@ Counted iteration is expressed with a range literal.  `Start`, `Stop` and `Step`
 
 The loop variable is local to the loop body and is not accessible after the loop terminates.  Assigning to the loop variable inside the body does not affect iteration.
 
-WARNING: A zero `Step` produces an infinite loop.
+A `Step` of zero is rejected.  `Start`, `Stop` and `Step` must all be finite, and `Step` must be non-zero; violating either constraint raises an error before the first iteration.  The constraint is the same one that <<ch-ranges>> applies to every range.
 
 ==== Range Iteration
 
@@ -119,7 +120,7 @@ for i in {0 to 1 by 0.25} do
 end
 ----
 
-When a single loop variable iterates over a range literal whose bounds are constant whole numbers within the signed 32-bit integer range, the compiler lowers it to an optimised counted loop.  Variable bounds and fractional operands use the generic iterator path.  Both paths produce the same sequence.
+A range literal written directly in the loop header is never iterated through an iterator function.  When its bounds are constant whole numbers within the signed 32-bit integer range, the compiler lowers the loop to an optimised counted loop.  Variable bounds and fractional operands are lowered to a prepared ordinal loop instead, which derives each visible value from the start and step so that floating-point error does not accumulate between iterations.  Both forms produce the same sequence, and the anonymous form is lowered on the same terms.
 
 [source,tiri]
 ----
@@ -184,13 +185,16 @@ The target expression is evaluated exactly once, before the first iteration, so 
 
 When the target carries a `pass:[__]iter` metamethod in its metatable, that metamethod is called to produce the iterator function and the default collection behaviour described below is bypassed.  See <<sec-iter-metamethod>> for the full protocol.
 
-When no `pass:[__]iter` metamethod is present, the three collection categories yield the following defaults:
+When no `pass:[__]iter` metamethod is present, the iterable categories yield the following defaults:
 
 `array`::
 Index and value, zero-based, in ascending index order.  A single loop variable therefore receives the *index*, not the element; write `for _, value in arr` or `values(arr)` to iterate elements alone.
 
 `table`::
 Key and value, exactly as `pairs()` produces them.  The order over non-integer keys is unspecified.
+
+`object`, `struct`::
+Key and value, exactly as `pairs()` produces them.  A struct yields each field name and its current value in declaration order (<<sec-struct-iteration>>).
 
 `range`::
 Each value of the sequence in turn.  This covers ranges held in a variable and ranges returned by `range()` and `range.new()`, not only range literals.
@@ -351,7 +355,7 @@ In a `while` loop, `continue` jumps to the condition check.  In a `repeat pass:[
 
 ==== Conditional Shorthand
 
-The `?!` operator can be used as a falsey guard when combined with `break`, `continue`, `return` or `raise` on a single line:
+The `?!` operator can be used as a falsey guard when combined with `break`, `continue`, `return`, `raise` or `check` on a single line.  Any other statement after `?!` raises a parse error, as does a guard whose left-hand side is an expression list rather than a single condition:
 
 [source,tiri]
 ----
@@ -359,6 +363,7 @@ value ?! return
 value ?! break
 value ?! continue
 value ?! raise ERR_Failed
+value ?! check ERR_Failed
 ----
 
 The shorthand executes the statement when `value` is falsey under the extended definition: `nil`, `false`, `0`, `""`, or an empty collection.  The `return` form accepts optional return values on the same line:
@@ -386,12 +391,12 @@ function add(A, B)
    return A + B
 end
 
-function swap(A, B)
+function swap(A:num, B:num)
    return B, A
 end
 ----
 
-`return` must be the last statement in a block.  Statements after `return` in the same block raise a parse error (unreachable code).
+`return` terminates its block.  Statements written after it in the same block are accepted by the parser and never execute; a diagnostic identifying them as unreachable is reported when parser tips are enabled.  The same rule applies to statements written after `break` and `continue`.
 
 At the top level of a script, `return` terminates the script.  Using `return` at the top level of an imported file emits a warning, as it terminates the importing script's scope.
 

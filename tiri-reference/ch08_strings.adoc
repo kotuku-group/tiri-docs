@@ -171,7 +171,7 @@ string.char(65)                       -- 'A'
 
 Formats values according to a C-style format string.  The `Format` string contains literal text and conversion specifiers.  Each specifier consumes the next argument in order.
 
-Supported conversion specifiers: `%d` (integer), `%i` (integer), `%u` (unsigned integer), `%f` (floating-point), `%e`/`%E` (scientific notation), `%g`/`%G` (compact floating-point), `%x`/`%X` (hexadecimal), `%o` (octal), `%s` (string), `%c` (character from byte value), `%q` (quoted string), `%%` (literal percent sign).
+Supported conversion specifiers: `%d` (integer), `%i` (integer), `%u` (unsigned integer), `%f` (floating-point), `%e`/`%E` (scientific notation), `%g`/`%G` (compact floating-point), `%a`/`%A` (hexadecimal floating-point), `%x`/`%X` (hexadecimal), `%o` (octal), `%s` (string), `%c` (character from byte value), `%q` (quoted string), `%p` (address of the value), `%%` (literal percent sign).  Any other specifier raises an error naming the invalid option.
 
 Width, precision, and flag modifiers follow standard C `printf` conventions.
 

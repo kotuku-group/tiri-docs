@@ -17,7 +17,7 @@ indexterm:[regex, creation] Compiles `Pattern` into a reusable regex object.  `F
 [source,tiri]
 ----
 digits = regex.new([[\d+]])
-email  = regex.new([[\w[\w._%+-]*@[\w.-]+\.[A-Za-z]{2,}]], regex.ICASE)
+email  = regex.new([[\w[\w._%+\-]*@[\w.\-]+\.[A-Za-z]{2,}]], regex.ICASE)
 ----
 
 Wrap construction in a `try` block when patterns originate from untested or user-supplied input (see <<ch-error-handling>>):
@@ -95,10 +95,10 @@ The `r` prefix does not conflict with variables named `r`.  The lexer recognises
 
 [source,tiri]
 ----
-r = { 'zero' }
+local r = { 'zero' }
 print(r[0])              -- 'zero' (table index, not regex)
 
-r = function(V) return V end
+local r = function(V:any):any return V end
 print(r 'text')          -- 'text' (function call, not regex)
 ----
 
@@ -195,7 +195,7 @@ Performs a whole-string match.  The pattern must match the entire `Text`; partia
 
 [source,tiri]
 ----
-rx = regex.new([[(https?)://([^/]+)(.*)]])
+rx = regex.new([[(https?)://([^\/]+)(.*)]])
 m = rx.match('https://example.com/path')
 -- m[0] = 'https://example.com/path'
 -- m[1] = 'https'
@@ -451,7 +451,7 @@ For patterns that are used across the lifetime of a script but may never be need
 
 [source,tiri]
 ----
-global rx_email = <{ regex.new([[\w[\w._%+-]*@[\w.-]+\.[A-Za-z]{2,}]]) }>
+global rx_email = <{ regex.new([[\w[\w._%+\-]*@[\w.\-]+\.[A-Za-z]{2,}]]) }>
 
 -- rx_email is compiled only if and when it is first accessed
 if rx_email.test(input) then
