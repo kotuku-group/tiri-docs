@@ -573,7 +573,7 @@ The optional `Options` argument controls how the code is parsed.  Pass a table w
 
 [source,tiri]
 ----
-result = debug.validate(code, { symbols=true, path='scripts:app/main.tiri' })
+result = debug.validate(code, { symbols=true, path='app:main.tiri' })
 ----
 
 [discrete]

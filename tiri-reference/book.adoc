@@ -11,7 +11,7 @@ Paul Manias
 :source-language: tiri
 :icons: font
 :revdate: September 2026
-:revremark: Draft
+:revremark: Pre-Release
 :toc: macro
 :toclevels: 3
 :sectnums:

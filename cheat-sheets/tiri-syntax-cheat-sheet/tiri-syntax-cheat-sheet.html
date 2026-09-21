@@ -235,7 +235,7 @@ maximum = getMany() |2&gt; math.max()          <span class="comment">-- first tw
 <p>In <code>[mask]call()</code>, <code>_</code> drops and <code>*</code> keeps; the final mask character governs all later positions. Pipelines insert forwarded values before arguments already written in the destination call.</p>
 
 <h2>Script organisation</h2>
-<pre>import 'json'                       <span class="comment">-- scripts:json.tiri</span>
+<pre>import 'json'                       <span class="comment">-- load std. library</span>
 import './helpers'
 import 'json' as j</pre>
 <pre>namespace tools { version = '1.0' }
@@ -258,7 +258,7 @@ include 'xml', 'font'                <span class="comment">-- definitions only</
    Label: str
 end</pre>
 <pre>point = struct&lt;Point&gt; { X=10.5, Y=20, Label='origin' }
-empty = struct&lt;Point&gt;   <span class="comment">-- zero-initialised</span></pre>
+empty = struct&lt;Point&gt;               <span class="comment">-- zero-initialised</span></pre>
 <p><code>enum</code> and <code>struct</code> declarations are top-level only; enum prefixes and members use upper-case identifiers. Struct fields use storage types such as <code>int</code>, <code>double</code>, <code>str</code>, <code>bool</code>, <code>type[N]</code>, <code>array&lt;type&gt;</code> and <code>struct&lt;Name&gt;</code>.</p>
 </main>
 </section>

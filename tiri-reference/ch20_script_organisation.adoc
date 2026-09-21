@@ -6,41 +6,84 @@ indexterm:[script organisation] Tiri programs use compile-time directives and ru
 
 [[sec-the-import-directive]]
 === The import Directive
-[.api]`import 'Name' [as Alias]` +
+[.api]`import 'Name' [version Constraint] [as Alias]` +
 [.api]`import 'Name', pass:[...]`
 
 indexterm:[import directive] The `import` directive loads and inlines a Tiri script at parse time.  The imported script's bytecode is merged into the importing script during compilation, enabling the parser to produce optimised code across library boundaries.
 
-[discrete]
 ==== Resolution Rules
 
-The `Name` argument identifies the library to import.  Resolution follows these rules:
+The `Name` argument identifies the library to import.  A name without a prefix is a _package import_ and resolves through the installed package index (<<sec-package-resolution>>).  A name that begins with `./` or `../` is a _local import_ and resolves relative to the importing script.  Resolution follows these rules:
 
-. Names consist of non-empty path components composed of alphanumeric characters, `-` and `_`, with `/` separators
-  for nested modules.  Empty components, including repeated or trailing separators, and file extensions are not
-  permitted.  Import paths have no parser-defined depth or length limit; host filesystem limits still apply.
-. The default search location is the `scripts:` volume.
-. To import from the local directory, prefix with `./`. For example, a name of `./lib/mylib` resolves relative to the importing script.
-. To import from a parent directory, prefix with one or more `../` segments.  For example, `../shared/util` resolves
-  relative to the importing script's parent directory.
-. Before opening a library, Tiri normalises its path and verifies that it remains within its import root.  The root is
-  the `scripts:` volume for an unprefixed name, the importing script's directory for `./`, or the ancestor selected by
-  explicit leading `../` segments.  Components following that prefix cannot perform further traversal.
-. Each library is imported at most once per compilation unit.  Subsequent `import` calls for the same library are silently ignored.
+. A package import name consists of non-empty components separated by `/`.  Each component contains lower-case ASCII letters, digits and single dashes; it cannot begin or end with a dash, and cannot contain consecutive dashes.  File extensions are not permitted.
+. A local import name consists of non-empty components separated by `/`, composed of ASCII letters, digits, `-` and `_`.  The `.tiri` extension is appended during resolution and cannot appear in the name.  Local import paths have no parser-defined depth or length limit; host filesystem limits still apply.
+. A package import selects the highest version available, limited only by the version clause (<<sec-version-clauses>>).
+. A local import prefixed with `./` resolves relative to the importing script's directory.  One or more leading `../` segments select an ancestor directory, so `../shared/util` resolves relative to the importing script's parent directory.
+. Before opening a library, Tiri normalises its path and verifies that it remains within its import root.  The root is the indexed `packages:` tree for a package import; the importing script's directory for `./`; or the ancestor selected by explicit leading `../` segments.
+. Each library is imported at most once per compilation unit.  Subsequent `import` calls for the same library are silently ignored, but each statement resolves and validates its own version clause.
 . A library that imports itself, directly or through a chain of imports, raises a parse error that reports the circular path.
 
 [source,tiri]
 ----
-import 'json'             -- scripts:json.tiri
-import 'gui/button'       -- scripts:gui/button.tiri
+import 'json'             -- highest version of the 'json' package
+import 'gui/button'       -- nested package name
 import './helpers'        -- ./helpers.tiri (relative to script)
 import '../shared/util'   -- ../shared/util.tiri (relative to script's parent)
 ----
 
+[[sec-package-resolution]]
+==== Package Resolution
+
+indexterm:[package index] indexterm:[package resolution] A package import is satisfied by the _package index_, a configuration file published at `packages:index.cfg`.  The index is read once when the Tiri runtime initialises and is fixed for the lifetime of the process.
+
+The public name and the directory layout are independent, so `import 'gui/button'` loads a file path such as `packages:button/1.0/button.tiri`.  Target paths are relative to the `packages:` volume; a target containing a volume separator, a backslash, an empty component, `.` or `..` is rejected.
+
+Resolution selects the highest version in the group that satisfies the import.  Versions are compared component by component, and a version carrying more components is greater than an otherwise equal prefix, so `1 < 1.0 < 1.0.1 < 1.1 < 1.10 < 2`.
+
+The selected source must declare valid `@Package` metadata (<<sec-package-metadata>>).  Checks against the declared `name` and `version` are performed before the body of the source is parsed.
+
+Each of the following conditions raises a parse error that names the failed import:
+
+* The import name is not a valid package import name.
+* The package is unavailable.
+* The index publishes no group for the name.
+* No version satisfies the version clause.
+* The selected target does not resolve to a file.
+* The selected source declares no `@Package` metadata, declares invalid metadata, or declares a version other than the version that selected it.
+
+The Tiri runtime does not start when `packages:index.cfg` is absent or invalid.
+
+[[sec-version-clauses]]
+[discrete]
+==== Version Clauses
+
+indexterm:[version clause] indexterm:[import version constraint] A version clause constrains the package version that an import selects.  It follows the import name and precedes the `as` alias.
+
+[source,tiri]
+----
+import 'json' version '1.0'                       -- exact version
+import 'gui/button' version >= '1.0' and < '2'    -- bounded range
+import 'net/url' version >= '1.0' as url          -- range with alias
+----
+
+A clause takes one of two forms:
+
+Exact:: `version` followed by a single string literal.  The import selects the version equal to that literal.  Equality compares every component, so `version '1.0'` does not select an indexed version of `1`.
+Range:: `version` followed by one or more comparisons joined with `and`.  Each comparison is one of the operators `<`, `\<=`, `>` or `>=` followed by a string literal.  The import selects the highest indexed version that satisfies every comparison.
+
+The following restrictions apply:
+
+* The version clause precedes the `as` alias.
+* Local imports do not support version clauses.
+* Each version is a string literal.  A numeric literal is a parse error.
+* Comparisons are separated by `and`.  The connectives `or`, `is`, `pass:[==]` and `pass:[!=]` are not accepted, and adjacent comparisons without `and` are a parse error.
+
+Each `import` statement resolves and validates independently.  A second import of the same library whose clause no indexed version satisfies raises a parse error, even where an earlier import has already loaded that library.
+
 [discrete]
 ==== Import Lists
 
-A single `import` statement imports multiple libraries as a comma-separated list of string literals.  Each entry is resolved and inlined from left to right, following the same order as an equivalent sequence of individual `import` statements.
+A single `import` statement imports multiple libraries as a comma-separated list of string literals.  Each entry is resolved and inlined from left to right, following the same order as an equivalent sequence of individual `import` statements.  An import list accepts neither a version clause nor an `as` alias.
 
 [source,tiri]
 ----
@@ -250,7 +293,7 @@ If `Path` begins with `./` or `../`, it is resolved relative to the directory of
 
 [source,tiri]
 ----
-loadFile('scripts:tools/helper.tiri')
+loadFile('packages:dialog/1.0/dialog.tiri')
 ----
 
 If the executed script ends with a `return` statement, the returned values are forwarded to the caller:

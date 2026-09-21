@@ -131,4 +131,5 @@ indexterm:[contextual keywords] A contextual keyword carries meaning only in a s
 |`to`     |Separates the start and stop operands of an exclusive range literal, as `{0 to 10}`.  See <<sec-range-constructors>>.
 |`into`   |Separates the start and stop operands of an inclusive range literal, as `{0 into 10}`.  See <<sec-range-constructors>>.
 |`by`     |Introduces the step operand of a range literal, as `{0 to 10 by 2}`.  See <<sec-range-constructors>>.
+|`version` |Introduces a version clause in an `import` statement, as `import 'json' version '1.0'`.  See <<sec-version-clauses>>.
 |===

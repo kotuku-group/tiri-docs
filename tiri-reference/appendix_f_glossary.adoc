@@ -187,6 +187,12 @@ A distinct first-class reference type representing a Kōtuku C++ class instance.
 Origo::
 The Tiri interpreter and application launcher executable.  Executes Tiri scripts from the command line with configurable options for logging, graphics drivers, and script arguments.  See <<ch-origo>>.
 
+Package::
+A library published through the package index under a public import name, carrying `@Package` metadata that declares its name and version.  See <<sec-package-resolution>> and <<sec-package-metadata>>.
+
+Package index::
+The configuration file `packages:index.cfg`, which maps each public import name to the versions of the library that are installed and the file that supplies each version.  Read once at runtime initialisation.  See <<sec-package-resolution>>.
+
 Pipe operator::
 The `|>` operator, which passes the left operand as the leading argument to the function call on the right.  The right operand must be a call; the operator performs no iteration of its own, and a pipeline traverses a collection by calling `forEach()`.  See <<sec-pipe-operator>>.
 

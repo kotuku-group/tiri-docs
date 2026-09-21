@@ -373,29 +373,25 @@ io.search('documents:', {
 |boolean
 |Controls how `nameFilter` and `excludeFilter` are applied.  When omitted or `false`, string comparisons ignore case and regex filters are internally compiled with `regex.ICASE`.  When `true`, strings are compared exactly and each regex uses its original flags.
 
-|`matchFeedback`
+|`errorFeedback`
 |function
-|Called each time a matching file is discovered.  Synopsis: `function(Path, FileName, File)`.  Return `ERR_Terminate` to stop the search.
+|Called when a path cannot be inspected or file content cannot be read.  Synopsis: `function(Path, Error)`.  `Error` is an ERR code or exception.  Return `ERR_Terminate` to stop the search.
 
 |`ignoreFeedback`
 |function
 |Called each time a file fails to pass filter matches.  Synopsis: `function(Path, FileName, File)`.  Return `ERR_Terminate` to stop the search.
 
-|`errorFeedback`
+|`matchFeedback`
 |function
-|Called when a path cannot be inspected or file content cannot be read.  Synopsis: `function(Path, Error)`.  `Error` is an ERR code or exception.  Return `ERR_Terminate` to stop the search.
-
-|`strict`
-|boolean
-|Raise file-system errors after calling `errorFeedback`, rather than continuing the search.
+|Called each time a matching file is discovered.  Synopsis: `function(Path, FileName, File)`.  Return `ERR_Terminate` to stop the search.
 
 |`cancelCheck`
 |function
 |Called periodically as `function(Matches)`, where `Matches` is the number of accepted results.  Return `true` or `ERR_Terminate` to stop the search.
 
-|`cancelToken`
-|table
-|A shared table whose `cancelled` field can be set to `true` to stop the search.
+|`ignoreFiles`
+|boolean
+|Do not scan files.  Use in conjunction with `matchFolders` to search for directories only.
 
 |`minSize`
 |number
@@ -413,33 +409,37 @@ io.search('documents:', {
 |DateTime
 |Exclude files with a modification time later than this `DateTime` structure.
 
-|`scanLinks`
-|boolean
-|Allow symbolically linked files to be opened for content matching.  Symbolically linked directories are not recursed.
-
 |`matchFolders`
 |boolean
 |Include matching folder names in search results.
-
-|`ignoreFiles`
-|boolean
-|Do not scan files.  Use in conjunction with `matchFolders` to search for directories only.
-
-|`minDepth`
-|number
-|Minimum depth at which entries can match.  `0` includes the current directory, `1` starts one level below it, and so on.
 
 |`maxDepth`
 |number
 |Maximum depth to recurse into subdirectories.  `0` searches the current directory only, `1` searches one level deep, and so on.  If omitted, recursion is unlimited.
 
+|`minDepth`
+|number
+|Minimum depth at which entries can match.  `0` includes the current directory, `1` starts one level below it, and so on.
+
 |`maxResults`
 |number
 |Stop after this many matching entries.  Values less than or equal to zero suppress all matches.
 
+|`scanHidden`
+|boolean
+|Allow hidden paths to be scanned when `true`.
+
+|`scanLinks`
+|boolean
+|Allow symbolically linked files to be opened for content matching.  Symbolically linked directories are not recursed.
+
 |`shouldDescend`
 |function
 |Called as `function(Path, Folder)` before entering each subfolder.  Return `true` to recurse, `false` to prune that folder tree, or `ERR_Terminate` to stop the search.
+
+|`strict`
+|boolean
+|Raise file-system errors after calling `errorFeedback`, rather than continuing the search.
 |===
 
 When searching files for content, apply a `nameFilter` or size limit so that only a controlled number of files are opened for reading.
@@ -500,7 +500,7 @@ fl = obj<File> { path='temp:data.txt', flags=FL_READ }
 fl = obj<File> { path='temp:output.txt', flags=FL_NEW|FL_WRITE }
 
 -- Open a folder for enumeration
-folder = obj<File> { src='system:scripts/' }
+folder = obj<File> { src='system:packages/' }
 ----
 
 When the `path` field is set with `FL_READ`, `FL_WRITE`, or `FL_NEW` flags, the file is opened automatically on creation.  Without these flags, the object is initialised in a query-only state where metadata (size, dates, permissions) is accessible but the file is not opened for I/O.
@@ -719,7 +719,7 @@ To enumerate the contents of a directory, create a File object pointing to the f
 
 [source,tiri]
 ----
-folder = obj<File> { src='system:scripts/' }
+folder = obj<File> { src='system:packages/' }
 
 err, fl = folder.mtNext()
 while err is ERR_Okay do
@@ -736,7 +736,7 @@ To filter the enumeration, pass `FL_EXCLUDE_FILES` or `FL_EXCLUDE_FOLDERS` in th
 ----
 -- List only subdirectories
 folder = obj<File> {
-   src   = 'system:scripts/',
+   src   = 'system:packages/',
    flags = FL_EXCLUDE_FILES
 }
 ----
@@ -787,8 +787,8 @@ The following volumes are available on all platforms:
 |`config:`
 |Configuration files.  Resolves to `system:config/`.
 
-|`scripts:`
-|Tiri script library.  Resolves to `system:scripts/`.
+|`packages:`
+|Installed Tiri libraries.  Resolves to `system:packages/`.
 
 |`fonts:`
 |Font files.  Resolves to `system:config/fonts/`.
@@ -890,9 +890,9 @@ Volumes can reference other volumes.  The system recursively resolves volume ref
 
 [source,tiri]
 ----
--- scripts: resolves to system:scripts/
+-- packages: resolves to system:packages/
 -- system:  resolves to /usr/local/share/kotuku (on Linux)
--- Result:  /usr/local/share/kotuku/scripts/
+-- Result:  /usr/local/share/kotuku/packages/
 ----
 
 [discrete]
@@ -911,11 +911,11 @@ A volume definition can include multiple paths separated by `|`.  When reading, 
 [discrete]
 ==== Command-Line Volume Override
 
-The `--set-volume` command-line option redefines a volume at startup.  This is useful during development for testing modified scripts before installation:
+The `--set-volume` command-line option redefines a volume at startup.
 
 [source,bash]
 ----
-origo --set-volume scripts=/custom/path/to/scripts myscript.tiri
+origo --set-volume packages=/path/to/installed/packages myscript.tiri
 ----
 
 [discrete]
