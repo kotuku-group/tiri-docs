@@ -1,4 +1,4 @@
-// VERIFIED: 2028-09-02
+// VERIFIED: 2026-09-02
 
 [[ch-functions]]
 == Functions

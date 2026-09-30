@@ -116,7 +116,7 @@ include::ch31_logging_and_diagnostics.adoc[]
 
 include::ch32_origo.adoc[]
 
-// ch33_tiri_lsp.adoc remains excluded until its reference content is complete.
+// ch33_tiri_resources.adoc remains excluded until its reference content is complete.
 
 // Appendices
 

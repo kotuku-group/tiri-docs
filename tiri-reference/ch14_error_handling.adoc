@@ -681,7 +681,7 @@ A `defer` block registered inside a `checkall` body executes after the block is 
 [discrete]
 ==== Nesting
 
-`try` blocks nest to a maximum runtime depth of 32 per coroutine, counting blocks entered by nested function calls.  Exceeding the limit raises an exception.  Each level catches its own exceptions independently.  An exception not matched by any handler in the current `try` block propagates to the next enclosing `try` block.
+`try` blocks nest to a maximum runtime depth of 32, counting blocks entered by nested function calls.  Exceeding the limit raises an exception.  Each level catches its own exceptions independently.  An exception not matched by any handler in the current `try` block propagates to the next enclosing `try` block.
 
 [source,tiri]
 ----

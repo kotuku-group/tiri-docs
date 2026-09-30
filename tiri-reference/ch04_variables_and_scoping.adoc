@@ -459,9 +459,10 @@ For a single target, a failed safe-nav hop short-circuits both the store and the
 config?.theme = load_theme()   -- function is not called if config is nil
 ----
 
+[[sec-compound-assignment-undeclared]]
 ==== Compound Assignment on Undeclared Variables
 
-`pass:[+=]`, `-=`, `*=`, `/=`, `%=` and `pass:[..=]` require an existing target.  Applying one to an undeclared name is a compile-time error, as is applying `pass:[++]` or `--` to one (<<sec-postfix-increment>>).
+`pass:[+=]`, `-=`, `*=`, `/=`, `%=` and `pass:[..=]` require an existing target.  Applying one to an undeclared name is a compile-time error, as is applying `pass:[++]` to one (<<sec-postfix-increment>>).
 
 `?=` and `??=` are exempt.  Where no binding exists, each reads the target as `nil` and declares a local under the local-by-default rule, so the initialiser is stored:
 

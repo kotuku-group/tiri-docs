@@ -212,6 +212,8 @@ value = 1         -- error: cannot assign 'number' to variable of type 'string'
 
 Result parameters that carry no Tiri equivalent, such as callbacks, are omitted from the result tuple.
 
+Structures are returned as `struct<Name>` types.  Ordinary results are read-only views, only results declared as writable resources allow write access.  Allocated results remain alive until their root struct and any retained nested views become unreachable.  Call `toTable()` for a detached table snapshot (<<sec-returned-structs>>).
+
 Error codes are automatically promoted to exceptions if the call is encapsulated in a `checkall` block (<<sec-the-checkall-statement>>).  Otherwise use the `check` keyword or compare the error code to verify success.
 
 For complete documentation of the actions and methods supported by each class, refer to the published API documentation.

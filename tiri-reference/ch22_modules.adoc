@@ -183,10 +183,8 @@ Result types map from the native signature as follows:
 |`str`
 |Object reference
 |`obj`
-|Resource structure
-|`struct`
-|Non-resource structure
-|`table`
+|Scalar structure
+|`struct<Name>` (exact definition)
 |Array or vector
 |`array` (element type included)
 |Untyped pointer
@@ -194,6 +192,8 @@ Result types map from the native signature as follows:
 |===
 
 Results other than the error code are nullable: they satisfy their type and also accept `nil` (<<sec-required-values>>).  A function that declares no results yields `nil`.
+
+Scalar structure results are direct-access views.  Access is read-only unless the function definition marks the resource as writable.  Use `struct.toTable()` to take a mutable copy of the struct (<<sec-returned-structs>>).
 
 [discrete]
 ==== Buffer Handling

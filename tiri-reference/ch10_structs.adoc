@@ -71,7 +71,7 @@ The following conditions raise a parse error:
 * A definition name containing non-alphanumeric characters.
 * A brace following the definition name.  Declarations use `end` termination; braces are reserved for `struct<Name> { pass:[...] }` construction.
 * A declaration with no fields.
-* Two field names that collide case-insensitively.
+* The same field name declared more than once.  Names that differ in letter case are distinct and may coexist.
 * An unrecognised field type name.
 * A `struct<Name>` or `ptr<Name>` reference to a definition that has not been registered yet.  Forward references are not supported; declarations must precede use.
 * An `array<type>` field with an unsupported element type or a declared dimension (see <<sec-struct-dynamic-arrays>>).
@@ -342,11 +342,28 @@ print(copy.name)   -- 'source'
 
 Deep-copies the payload of `Source` into the existing `Dest` instance and returns `Dest`.  `Dest` and `Source` must share the same definition; a mismatch raises an exception with `ERR_Mismatch`.  Raises an exception if either payload is null, if the payloads overlap in memory, or if the definition holds an unsupported field type.
 
+==== struct.toTable()
+
+[.api]`snapshot = struct.toTable(Source)`
+
+Creates a new table with a copy of values from `Source`.  Nested structures are converted recursively, strings and arrays are copied, and repeated or cyclic structure pointers retain their identity within the resulting table graph.
+
+Use this operation when a table-only API, serialiser or application-specific field requires a mutable table; or if the struct values are volatile.  Ordinary field reads should use the struct directly.
+
+[[sec-returned-structs]]
+==== Native Results and Ownership
+
+Structure results from module functions, object actions and object methods are read-only by default; assigning one of their fields raises `ERR_ReadOnly` in interpreted and JIT-compiled code.  Only a native descriptor that explicitly marks the result as a writable resource allows write access.
+
+If a struct result is allocated, ownership is passed to Tiri and is not released until collection.  Borrowed results remain owned by their native provider; use `toTable()` when a detached snapshot must outlive that provider.
+
+`clone()` creates an independent writable value when the registered layout supports cloning.  `copy()` rejects a read-only destination.
+
 === Instance Methods
 
-==== size(), clone() and copy()
+==== size(), clone(), copy() and toTable()
 
-`size()`, `clone()` and `copy()` are reachable as built-in methods on an instance.  Fields sharing these names are still treated as fields when not invoked as functions.
+`size()`, `clone()`, `copy()` and `toTable()` are reachable as built-in methods on an instance.  Fields sharing these names are still treated as fields when not invoked as functions.
 
 ==== Length Operator
 
@@ -355,7 +372,8 @@ The `#` operator returns the total number of fields in the struct.
 [[sec-struct-field-access]]
 === Field Access
 
-Fields are read and written directly on the instance using dot notation.  Field names are matched against the definition case-insensitively.  Reading or writing a name that the definition does not declare raises an exception.
+Fields are read and written directly on the instance using dot or bracket notation.  Field names are matched case-sensitively.
+Reading or writing a name that the definition does not declare exactly raises an exception.
 
 A write validates the category of the value against the field before any storage is changed.  The categories are exact and no conversion between them is attempted: a boolean field accepts only a boolean, a numeric field only a number, and an owned string field only a string.  A value of the wrong category raises `ERR_InvalidType` and leaves the field at its previous value, so a numeric string does not satisfy a numeric field, and a number does not satisfy a boolean field, a string field or a character buffer.
 
@@ -459,7 +477,7 @@ These conversions apply wherever a field is written: the `struct<Name> { pass:[.
 [[sec-struct-membership]]
 === Membership
 
-The `in` operator (<<sec-membership-operator>>) reports whether the struct's definition declares a field name.  The test inspects the definition only and never inspects field values, so a field holding zero, an empty string or `nil` is reported as present.  Names are matched case-insensitively, under the same rules as field access (<<sec-struct-field-access>>).  A candidate that is not a string reports `false` and raises no error.
+The `in` operator (<<sec-membership-operator>>) reports whether the struct's definition declares a field name.  The test inspects the definition only and never inspects field values, so a field holding zero, an empty string or `nil` is reported as present.  Names are matched exactly, including letter case, under the same rules as field access (<<sec-struct-field-access>>).  A candidate that is not a string reports `false` and raises no error.
 
 [source,tiri]
 ----
@@ -470,7 +488,8 @@ end
 
 point = struct<Point> { }
 'X' in point         -- true
-'name' in point      -- true: names match case-insensitively
+'Name' in point      -- true
+'name' in point      -- false: field names are case-sensitive
 'Missing' in point   -- false
 1 in point           -- false: a non-string candidate never matches
 ----

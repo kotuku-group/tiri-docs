@@ -9,20 +9,20 @@ indexterm:[reserved words] indexterm:[keywords] This appendix provides a quick-r
 
 [cols="6*"]
 |===
-|`and`      |`as`       |`await`     |`break`   |`check`   |`checkall`
-|`choose`   |`class`    |`continue`  |`defer`   |`do`      |`else`
-|`elseif`   |`end`      |`enum`      |`except`  |`export`  |`extends`
-|`extern`   |`false`    |`finally`   |`for`     |`from`    |`function`
-|`global`   |`has`      |`if`        |`import`  |`in`      |`interface`
-|`is`       |`local`    |`namespace` |`nil`     |`not`     |`or`
-|`raise`    |`record`   |`repeat`    |`return`  |`success` |`then`
-|`thunk`    |`true`     |`try`       |`until`   |`using`   |`when`
-|`where`    |`while`    |`with`      |`yield`   |          |
+|`and`       |`as`        |`await`     |`break`     |`check`     |`checkall`
+|`choose`    |`class`     |`continue`  |`defer`     |`do`        |`else`
+|`elseif`    |`end`       |`enum`      |`except`    |`export`    |`extends`
+|`extern`    |`false`     |`for`       |`from`      |`function`  |`global`
+|`has`       |`if`        |`import`    |`in`        |`interface` |`is`
+|`local`     |`namespace` |`nil`       |`not`       |`or`        |`raise`
+|`record`    |`repeat`    |`return`    |`success`   |`then`      |`thunk`
+|`true`      |`try`       |`until`     |`using`     |`when`      |`where`
+|`while`     |`with`      |`yield`     |            |            |
 |===
 
 A reserved word remains available as a table member name, so `t.using` and `t.with` are valid field accesses.  It is also accepted as a bare key in a table constructor when followed by `=`, as in `{ end = 1 }`.  The `=` makes the word's role as a field name unambiguous.
 
-`await`, `class`, `export`, `extends`, `finally`, `interface`, `record`, `where` and `yield` are reserved but define no syntax in this version of the language.  See <<sec-reserved-without-grammar>>.
+`await`, `class`, `export`, `extends`, `interface`, `record`, `where` and `yield` are reserved but define no syntax in this version of the language.  See <<sec-reserved-without-grammar>>.
 
 === Reference by Category
 

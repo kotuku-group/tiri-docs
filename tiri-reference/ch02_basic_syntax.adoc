@@ -74,15 +74,15 @@ The following words are reserved and cannot be used as identifiers:
 
 [cols="6*^"]
 |===
-|`and`      |`as`       |`await`     |`break`   |`check`   |`checkall`
-|`choose`   |`class`    |`continue`  |`defer`   |`do`      |`else`
-|`elseif`   |`end`      |`enum`      |`except`  |`export`  |`extends`
-|`extern`   |`false`    |`finally`   |`for`     |`from`    |`function`
-|`global`   |`has`      |`if`        |`import`  |`in`      |`interface`
-|`is`       |`local`    |`namespace` |`nil`     |`not`     |`or`
-|`raise`    |`record`   |`repeat`    |`return`  |`success` |`then`
-|`thunk`    |`true`     |`try`       |`until`   |`using`   |`when`
-|`where`    |`while`    |`with`      |`yield`   |          |
+|`and`       |`as`        |`await`     |`break`     |`check`     |`checkall`
+|`choose`    |`class`     |`continue`  |`defer`     |`do`        |`else`
+|`elseif`    |`end`       |`enum`      |`except`    |`export`    |`extends`
+|`extern`    |`false`     |`for`       |`from`      |`function`  |`global`
+|`has`       |`if`        |`import`    |`in`        |`interface` |`is`
+|`local`     |`namespace` |`nil`       |`not`       |`or`        |`raise`
+|`record`    |`repeat`    |`return`    |`success`   |`then`      |`thunk`
+|`true`      |`try`       |`until`     |`using`     |`when`      |`where`
+|`while`     |`with`      |`yield`     |            |            |
 |===
 
 Keywords are case-sensitive.  A reserved word remains available as a table member name, so `t.using` and `t.with` are valid field accesses.
@@ -90,7 +90,7 @@ Keywords are case-sensitive.  A reserved word remains available as a table membe
 [[sec-reserved-without-grammar]]
 ===== Reserved Words Without Grammar
 
-Nine of the reserved words define no syntax in this version of the language: `await`, `class`, `export`, `extends`, `finally`, `interface`, `record`, `where` and `yield`.  They are reserved so that a future revision can define them without invalidating existing code.  Using one as an identifier is rejected on the same terms as any other reserved word, and using one where a statement or expression is expected is a syntax error.
+Eight of the reserved words define no syntax in this version of the language: `await`, `class`, `export`, `extends`, `interface`, `record`, `where` and `yield`.  They are reserved so that a future revision can define them without invalidating existing code.  Using one as an identifier is rejected on the same terms as any other reserved word, and using one where a statement or expression is expected is a syntax error.
 
 [%breakable]
 [[sec-statements-and-blocks]]

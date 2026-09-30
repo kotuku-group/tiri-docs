@@ -1,4 +1,4 @@
-// VERIFIED: 2026-09-15
+// VERIFIED: 2026-09-21
 
 [[ch-script-management]]
 == Script Organisation

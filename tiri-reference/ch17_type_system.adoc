@@ -604,6 +604,8 @@ Result types are derived for:
 
 Result types are published in the native vocabulary.  A native signature that declares a width-specific type contributes `num`, in line with <<sec-type-vocabularies>>.
 
+A native structure result keeps its exact `struct<Name>` definition for module functions and object actions or methods.
+
 [source,tiri]
 ----
 local start, stop = string.find('abc', 'b')

@@ -30,6 +30,8 @@ indexterm:[operators, precedence] This appendix provides a quick-reference for a
 
 Postfix operators (`++`, `??` postfix) and suffix chains (`.field`, `[index]`, `()`, `?.`, `?[]`) bind tighter than all binary operators.  They evaluate immediately after the primary expression, left to right.
 
+`++` evaluates to the value its target held before the increment, so `x++ + 10` adds 10 to that prior value.  See <<sec-postfix-increment>>.
+
 === Self Referencing
 
 `&name` and `+&&+` are primary expressions, not operators, so they carry no precedence of their own and accept the suffix chain above.

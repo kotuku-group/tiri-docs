@@ -544,7 +544,7 @@ Collection does not relocate values, and the cost of a cycle is proportional to 
 
 Each script owns its heap and its collector.  A script executed with `thread.script()` (<<ch-threading>>) collects independently of its parent, and `processing.gcStats()` reports memory for the calling script alone.
 
-The collector governs Tiri values — strings, tables, arrays, structs, closures and coroutines — and the interfaces that own Kōtuku resources.  Reclaiming an interface created with `obj<Class> { }` or `obj.new()` terminates the underlying object.  Interfaces obtained from `obj.find()`, created as children of another object, or demoted by `detach()`, hold weak references and are not terminated by collection (<<sec-object-lifecycle>>).  Reclaiming a table or full userdata that carries a `pass:[__]gc` metamethod invokes that finaliser once, immediately before the value is reclaimed (<<sec-garbage-collection>>).
+The collector governs Tiri values — strings, tables, arrays, structs and closures — and the interfaces that own Kōtuku resources.  Reclaiming an interface created with `obj<Class> { }` or `obj.new()` terminates the underlying object.  Interfaces obtained from `obj.find()`, created as children of another object, or demoted by `detach()`, hold weak references and are not terminated by collection (<<sec-object-lifecycle>>).  Reclaiming a table or full userdata that carries a `pass:[__]gc` metamethod invokes that finaliser once, immediately before the value is reclaimed (<<sec-garbage-collection>>).
 
 [discrete]
 ===== Scheduling

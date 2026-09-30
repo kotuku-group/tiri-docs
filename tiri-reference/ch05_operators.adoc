@@ -300,6 +300,7 @@ not (perms has PERMIT_WRITE)          -- true
 
 The `has` operator combines naturally with logical operators:
 
+[%unbreakable]
 [source,tiri]
 ----
 if perms has PERMIT_READ and perms has PERMIT_EXECUTE then
@@ -354,6 +355,7 @@ Concatenation is right-associative: `a .. b .. c` evaluates as `a .. (b .. c)`.
 
 If an operand is not a string or number and has no `pass:[__]concat` metamethod, the runtime raises an error.
 
+[%unbreakable]
 [source,tiri]
 ----
 greeting = 'Hello, ' .. 'world!'  -- 'Hello, world!'
@@ -436,24 +438,35 @@ label ??= 'untitled'         -- assigns only if label is falsey
 
 [[sec-postfix-increment]]
 === Postfix Increment
-indexterm:[operators, postfix increment] The `++` operator increments a numeric variable by 1.
+indexterm:[operators, postfix increment] The `++` operator adds 1 to a numeric target and stores the result back into that target.
 
 [source,ebnf]
 ----
 postfix_increment = assignable "++" ;
 ----
 
-The target must be an assignable numeric location: a local, upvalue, global, field access, or indexed element.  Applying `++` to a constant or non-numeric value is an error.
+The operator must follows its target; a leading `++` is a syntax error.
+
+The target must be an assignable location and represent a number at the point of evaluation.  No conversion is applied, so a numeric string such as `'5'` is rejected on the same terms as any other non-numeric value.
+
+`++` serves as both a statement and an expression.  As an expression it evaluates to the value of the target _before_ the increment.  The store takes place whether or not the result is used.
 
 [source,tiri]
 ----
 count = 0
 count++             -- count is now 1
+
 t = { score = 10 }
 t.score++           -- t.score is now 11
+
+x = 1
+y = x++             -- y is 1, x is 2
+z = x++ + 10        -- z is 12, x is 3
 ----
 
-Use `++` only as a statement.  Its return value as an expression is unspecified.
+The operator binds tighter than every binary operator, so `x++ + 10` adds 10 to the value of `x` before the increment.  See <<appendix-operator-precedence>>.
+
+Applying `++` to an undeclared name is a compile-time error.  Applying it to a target that does not hold a number raises an exception when the statement executes.
 
 NOTE: There is no `--` decrement operator as it denotes a comment.  Use `x -= 1` instead.
 

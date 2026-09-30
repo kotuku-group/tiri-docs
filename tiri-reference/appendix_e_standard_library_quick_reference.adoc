@@ -437,6 +437,7 @@ indexterm:[library, struct] See <<ch-structs>>.
 |`struct.size(Target)`                |Returns the byte size of a structure definition, named or reached through an instance.
 |`struct.clone(Source)`               |Returns a deep copy of a structure instance.
 |`struct.copy(Dest, Source)`          |Deep-copies `Source` into `Dest` and returns `Dest`.
+|`struct.toTable(Source)`             |Returns a table projection of `Source`.
 |`struct.def(StructName)`             |Returns a constructor function for the registered definition `StructName`.
 |===
 
@@ -451,6 +452,7 @@ Typed literal syntax is also supported: `struct<Name> { Fields }`; see <<sec-str
 |`inst.size()`       |Returns the byte size of the instance's structure definition.
 |`inst.clone()`      |Returns a deep copy of the instance.
 |`inst.copy(Source)` |Deep-copies `Source` into the instance and returns it.
+|`inst.toTable()`    |Returns a table projection of the instance.
 |===
 
 Instances support `#inst` (field count), `pairs(inst)` (declaration-order iteration), `tostring(inst)`, and `'Name' in inst`, which reports whether the definition declares a field of that name.
